@@ -59,7 +59,7 @@ source("procrustus.R")
 frequently. All suggestions for improvement are welcome. All Rmd, tex,
 html, pdf, R, and C files are in the public domain. Attribution will be
 appreciated, but is not required. The files can be found at
-<https://github.com/deleeuw> 
+<https://github.com/deleeuw/strain> 
 
 \sectionbreak
 
@@ -82,19 +82,7 @@ C(\Delta):=-\frac12 J\Delta^2J.\label{eq-c}
 
 In non-metric MDS we have to minimize strain over both $X$ and $\Delta$, where $\Delta$ varies in some subset of the space $\mathcal{D}$ of non-negative, symmetric and hollow matrices of order $n$. In @trosset_98 there is a nice overview of previous attempts to minimize non-metric strain in MDS. 
 
-Almost all  MDS loss functions are of the form
-\begin{equation}
-\sigma(x):\sum_k w_k(f(\delta_k)-f(d_k(X)))^2\label{eq-fstress}
-\end{equation}
-for some given function $f$. @groenen_deleeuw_mathar_C_95 call \eqref{eq-fstress} fStress. For $f$ the identity we have stress (@kruskal_64a), for $f$ the square we have sstress (@takane_young_deleeuw_A_77), and for $f$ the logarithm we have log-stress (@ramsay_77). 
 
-If we ravel the matrices $\Delta$ and $D(X)$ to vectors we can write
-\begin{equation}
-\sigma(X,\Delta)=\frac14(\delta-d(X))'J\otimes J(\delta-d(X)),\label{eq-ravel}
-\end{equation}
-with $\otimes$ the Kronecker product. If we compare \eqref{eq-fstress} and \eqref{eq-ravel} we see that strain is more complicated because of the non-diagonal Kronecker weights. This makes the usual optimal transformations
-in MDS, such as monotone regression in the ordinal case, more complicated
-and costly. As a consequence non-metric MDS techniques minimizing strain have not been implemented and used to the same degree as techniques based on variations of fStress. 
 
 \sectionbreak
 
@@ -205,10 +193,10 @@ The plot shows a very stable solution.
 
 ## Ordinal MDS
 
-@trosset_98
-
+The problem of minimizing strain over $\Delta$ for fixed $D$ can be written in vector form, by using the $\text{vec}()$ of $\Delta$ and $D$, and by using the 
+Kronecker product. Thus
 $$
-(\delta - d)'J\otimes J(\delta - d)
+\sigma(\delta)=\frac14(\delta - d)'J\otimes J(\delta - d)
 $$
 $$
 \delta=\tilde\delta+(\delta-\tilde\delta)
@@ -223,7 +211,39 @@ $$
 
 \sectionbreak
 
+# Software
+
+\sectionbreak
+
 # Discussion
+
+Almost all  MDS loss functions are of the form
+\begin{equation}
+\sigma(x):=\sum_k w_k(f(\delta_k)-f(d_k(X)))^2\label{eq-fstress}
+\end{equation}
+for some given function $f$. @groenen_deleeuw_mathar_C_95 call loss function \eqref{eq-fstress} fStress. For $f$ equal to the identity we have stress (@kruskal_64a), for $f$ the square we have sstress (@takane_young_deleeuw_A_77), and for $f$ the logarithm we have log-stress (@ramsay_77). 
+
+If we ravel the matrices $\Delta$ and $D(X)$ to vectors strain becomes
+\begin{equation}
+\sigma(X,\Delta)=\frac14(\delta-d(X))'J\otimes J(\delta-d(X)),\label{eq-ravel}
+\end{equation}
+with $\otimes$ the Kronecker product. If we compare \eqref{eq-fstress} and \eqref{eq-ravel} we see that strain is more complicated because of the non-diagonal Kronecker weights. This makes the usual optimal transformations
+in MDS, such as monotone regression in the ordinal case, more complicated
+and costly. As a consequence non-metric MDS techniques minimizing strain have not been implemented and used to the same degree as techniques based on variations of fStress. 
+
+@trosset_98 discusses an implementation or ordinal MDS uing strain. His
+aproach is quite different from ours, because it does not use ALS but
+gradient projection. More importantly, Trosset projects out the 
+optimization over $X$. Thus his strain is a function of $\Delta$ only,
+defined as
+$$
+\sigma(\Delta)=\min_X\text{tr}\ (C(\Delta)- XX')^2=\sum_{r=p+1}^n\lambda_r^2(C_+(\Delta)),
+$$
+where the $\lambda_r$ are the $n-p$ smallest eigenvalues of its argument, and with $C_+$ the positive definite part of $C$. This loss function is then
+minimized over $\Delta$ by gradient projection, constrained by the linear inequalities that impose monotonicity. It is unclear how this compares to ALS,
+although we can say that in general projecting out a set of unknowns tends to
+accelerate convergence, at the cost of more complicated subproblems in each
+iteration. Also, unlike ALS, gradient projection implies choosing a step-size procedure to guarantee convergence.
 
 weighted strain
 
