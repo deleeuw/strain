@@ -194,20 +194,29 @@ The plot shows a very stable solution.
 ## Ordinal MDS
 
 The problem of minimizing strain over $\Delta$ for fixed $D$ can be written in vector form, by using the $\text{vec}()$ of $\Delta$ and $D$, and by using the 
-Kronecker product. Thus
+Kronecker product. This gives
 $$
 \sigma(\delta)=\frac14(\delta - d)'J\otimes J(\delta - d)
 $$
-$$
-\delta=\tilde\delta+(\delta-\tilde\delta)
-$$
-$$
-((\delta-\tilde\delta) - (d-\tilde\delta))'J\otimes J((\delta-\tilde\delta) - (d-\tilde\delta))\leq
-\sigma(\tilde\delta)-2(d-\tilde\delta)'J\otimes J(\delta-\tilde\delta)+\|\delta-\tilde\delta\|^2 
-$$
+Without loss of generality we require the elements of $\delta$ to be
+increasing.
+
+This is a weighted monotone regression problem. It is more complicated
+than standard monotone regression because of the weights $J\otimes J$, which
+are not diagonal. Thus ..., although convex, is not separable. In addition $J\otimes J$ is singular, having $(n-1)^2$ unit and $2n-1$ zero eigenvalues. Routines such as PAVA cannot be used, although active set methods are still a viable alternative (@deleeuw_hornik_mair_A_09). We will go an alternative route, using majorization to reduce the weighted least squares problem to a sequence of unweighted ones, for which we can use ordinary monotone regression. This follows the work of @kiers_97 and @groenen_giaquinto_kiers_03.
+
+Suppose $\tilde\delta$ is the current best value of the disparities. 
+Then
+\begin{multline}
+\sigma(\delta)=\frac14((\delta-\tilde\delta) - (d-\tilde\delta))'J\otimes J((\delta-\tilde\delta) - (d-\tilde\delta))\leq\\
+\frac14\{\sigma(\tilde\delta)-2(d-\tilde\delta)'J\otimes J(\delta-\tilde\delta)+(\delta-\tilde\delta)'(\delta-\tilde\delta)\}
+\end{multline}
+In majorization we minimize the last term in ... Ignoring terms which do
+not depend on $\delta$ this is the same as minimizing
 $$
 \|\delta-(\tilde\delta-(J\otimes J)(\tilde\delta-d))\|^2=\|\Delta-(\tilde\Delta-J(\tilde\Delta-D)J))\|^2
 $$
+
 
 \sectionbreak
 
