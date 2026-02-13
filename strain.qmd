@@ -1,0 +1,232 @@
+---
+title: Nonmetric Strain
+author: 
+    - name: Jan de Leeuw
+      orcid: 0000-0003-1420-1797
+      email: jan@deleeuwpdx.net
+      affiliation: 
+        - name: University of California Los Angeles
+          city: Los Angeles
+          state: CA
+          url: www.ucla.edu
+      license: "CC0"
+date: last-modified
+date-format: long
+bibliography: [mypubs.bib, total.bib]
+number-sections: true
+pdf-engine: lualatex
+keep-tex: true
+format:
+   pdf:
+    fontsize: 12pt
+    include-in-header: 
+     - preamble.tex
+    keep-tex: true
+    link-citations: true
+    documentclass: scrartcl
+    number-sections: true
+   html:
+    fontsize: 12pt
+    include-in-header: 
+     - preamble.css
+    keep-md: true
+    number-sections: true
+toc: true
+toc-depth: 3
+editor: source
+papersize: letter
+graphics: true
+link-citations: true
+mainfont: Times New Roman
+abstract: TBD
+---
+
+```{r loadpackages, echo = FALSE}
+suppressPackageStartupMessages(library(knitr, quietly = TRUE))
+suppressPackageStartupMessages(library(tinytex, quietly = TRUE))
+```
+
+```{r data, echo = FALSE}
+source("munsellData.R")
+source("morseData.R")
+source("strainSSMissing.R")
+source("procrustus.R")
+```
+
+\sectionbreak 
+
+**Note:** This is a working manuscript which will be expanded/updated
+frequently. All suggestions for improvement are welcome. All Rmd, tex,
+html, pdf, R, and C files are in the public domain. Attribution will be
+appreciated, but is not required. The files can be found at
+<https://github.com/deleeuw> 
+
+\sectionbreak
+
+# Introduction
+
+In Mutidimensional Scaling (MDS) the strain loss function is defined as
+\begin{equation}
+\sigma(X,\Delta):=\frac14\text{tr}\ \{J(\Delta^2-D^2(X))J\}^2\label{eq-strain}
+\end{equation}
+Here $J$ is the centering matrix of order $n$, i.e. $J:=I-n^{-1}E$, with $E$ a matrix with all elements equal to one. Matrix $\Delta^2$ has squared dissimimarities and $D^2(X)$ contains the squared Euclidean distances between the rows of an $n\times p$ column-centered configuration matrix $X$.
+
+We will also use another representation of strain in this paper. By double-centering we find
+\begin{equation}
+\sigma(X,\Delta)=\text{tr}\ (C(\Delta)- XX')^2.\label{eq-strainc}
+\end{equation}
+with
+\begin{equation}
+C(\Delta):=-\frac12 J\Delta^2J.\label{eq-c}
+\end{equation}
+
+In non-metric MDS we have to minimize strain over both $X$ and $\Delta$, where $\Delta$ varies in some subset of the space $\mathcal{D}$ of non-negative, symmetric and hollow matrices of order $n$. In @trosset_98 there is a nice overview of previous attempts to minimize non-metric strain in MDS. 
+
+Almost all  MDS loss functions are of the form
+\begin{equation}
+\sigma(x):\sum_k w_k(f(\delta_k)-f(d_k(X)))^2\label{eq-fstress}
+\end{equation}
+for some given function $f$. @groenen_deleeuw_mathar_C_95 call \eqref{eq-fstress} fStress. For $f$ the identity we have stress (@kruskal_64a), for $f$ the square we have sstress (@takane_young_deleeuw_A_77), and for $f$ the logarithm we have log-stress (@ramsay_77). 
+
+If we ravel the matrices $\Delta$ and $D(X)$ to vectors we can write
+\begin{equation}
+\sigma(X,\Delta)=\frac14(\delta-d(X))'J\otimes J(\delta-d(X)),\label{eq-ravel}
+\end{equation}
+with $\otimes$ the Kronecker product. If we compare \eqref{eq-fstress} and \eqref{eq-ravel} we see that strain is more complicated because of the non-diagonal Kronecker weights. This makes the usual optimal transformations
+in MDS, such as monotone regression in the ordinal case, more complicated
+and costly. As a consequence non-metric MDS techniques minimizing strain have not been implemented and used to the same degree as techniques based on variations of fStress. 
+
+\sectionbreak
+
+# Alternating Least Squares 
+
+In our technique for strain minimization we apply alternating least squares (ALS)
+to loss function \eqref{eq-strain}. We start with some initial estimate $\smash{\Delta^{(0)}}$. Then, in each iteration, there aretwo subproblems. We first minimize strain
+over $X$ with $\Delta$ fixed at its current value, and then minimize over $\Delta$
+in $\mathcal{D}$ with $X$ fixed at its current value, which is the optimal vcalue of the first subproblem in the iteration. Then we test for convergence, and if the loss function still decreases we go to the next iteration. 
+
+In iteration $k$ this means
+\begin{subequations}
+\begin{align}
+X^{(k)}&=\mathop{\text{argmin}}_X\sigma(X,\Delta^{(k-1)}),\\
+\Delta^{(k)}&=\mathop{\text{argmin}}_{\Delta\in\mathcal{D}}\sigma(X^{(k)},\Delta)
+\end{align}
+\end{subequations}
+If a subproblem in an iteration is too complicated for some reason, then we
+merely make a step towards the conditional minimum, making sure that
+\begin{equation}
+\sigma(X^{(k)},\Delta^{(k)})<\sigma(X^{(k)},\Delta^{(k-1)})<\sigma(X^{(k-1)},\Delta^{(k-1)}).
+\end{equation}
+
+In the first subproblem minimizing strain over $X$ for fixed $\Delta$ is done by computing the diagonal matrix with $p$ dominant eigenvalues $\Lambda_p$ of $C$ and the corresponding eigenvalues $K_p$. Fir this we use the R package RSpectra (@qiu_mei_24). If  $\Lambda_p\geq 0$ then the optimal $X$ is $\smash{K_p\Lambda_p^\frac12}$. If some elements of $\Lambda_p$ are negative, we first replace them by zeroes. This is classical metric
+multidimensional scaling (@torgerson_58, @gower_66, @mardia_78). The fact that computing the classical scaling solution is equivalent to minimizing the loss function \eqref{eq-strain} was first pointed out by @deleeuw_heiser_C_82.
+
+The second subproblem, minimizing strain of $\Delta$ for fixed $X$ (and thus fixed $D$), can take various forms. We discuss some special cases, and their implementation, below.
+
+## The Additive Constant
+
+If a constant $\theta$ is added to the off-diagonal dissimilarities the disparities are
+\begin{align}
+\Delta^2&=\Delta_0^2+2\theta\Delta_0+\theta^2(E-I).\label{eq-addone}
+\end{align}
+Because we want the $\delta_{ij}$ to be non-negative we require that $\theta\geq-\min\Delta_0$, where the minimum is taken over all off-diagonal elements of $\Delta$.
+
+
+From \eqref{eq-addone} we have, with $G:=J\Delta_0J$ and $H:=J(\Delta_0^2-D^2)J$, 
+\begin{equation}
+\sigma(\theta):=\frac14\text{tr}\ \left\{J(\Delta_0^2+2\theta\Delta_0+\theta^2(E-I)-D^2)J\right\}^2=\frac14\text{tr}\ \left\{H+2\theta G-\theta^2 J\right\}^2,\label{eq-straint2}
+\end{equation}
+which is a quartic in $\theta$. Expanding and simplifying gives
+\begin{equation}
+\sigma(\theta)=\frac14\left\{\text{tr}\ H^2+4\theta\text{tr}\ HG+2\theta^2(\text{tr}\ 2G^2-\text{tr}\ H)-4\theta^3\text{tr}\ G+\theta^4(n-1)\right\}.\label{eq-poly}
+\end{equation}
+We minimizing the quartic over the half-open interval $\theta\geq-\min\Delta$ using the formulas in @jeffrey_97. We implemented Jeffrey's solution in the C function jeffrey(), which is in the shared library jeffrey.so. The R program strainSSAddOne() loads the shared library and 
+iteratively executes the two ALS sub problems.
+
+Our example is taken from @torgerson_58, pages 280-290. Dissimilarty judgments of nine Munsell
+colors of the same red hue, but differing in brightness and saturation, where collected from 38 subjects using the method of triads. The matrix $\Delta_0$, which Torgerson calls the
+"comparative distances" is taken from his Table 5 on p 286.
+```{r munselldata, echo = FALSE}
+print(munsellMatrix)
+```
+Torgerson (p, 286-287) uses an elegant, but elaborate, method to find an additive constant value of 3.60. His technique is not based on minimization of an explicit loss function. 
+Iterating strainSSAddOne() until strain changes less than `r 1e-10` from one iteration to the 
+next, starting with $\theta=0$ uses 196 iterations and find $\theta=2.85$. Starting with
+Torgerson's 3.6 value for the additive constant gives the same $\theta$ in 184 iterations.
+Of course the `r 1e-10` stopping criterion is much too strict for most applications, although
+a run with even higher precision shows the value for the optimal additive constant only has three stable decimals. Using a more realistic `r 1e-3` requires 105 iterations and gives two stable decimals. In other words, convergence is slow. 
+
+## Imputing Missing Data
+
+If there are missing data the classical scaling method to minimize strain must be adapted. In
+that case there is a set $\mathcal{M}$ of $m$ index pairs that code for missing data. Matrix
+$\Delta_0^2$ now has zeroes for missing data and squared dissimilarities for the non-missing ones. We have
+\begin{equation}
+\Delta^2=\Delta_0^2+\sum_{(i,j)\in\mathcal{M}}\theta_{(i,j)}E_{(i,j)},
+\end{equation}
+where $E_{(i,j)}:=e_ie_j'+e_je_i'$ and $e_i$ has element $i$ equal to one and all other elements zero. If $D^2$ are the current squared distances, then strain is the function of $\theta$ defined as
+\begin{equation}
+\sigma(\theta):=\text{tr}\ \{H-\sum_{(i,j)\in\mathcal{M}}\theta_{(i,j)\in\mathcal{M}}JE_{(i,j)\in\mathcal{M}}J)\}^2,
+\label{eq-strmis}
+\end{equation}
+where $H$ is as defined before.
+
+Minimizing $\sigma$ from \eqref{eq-strmis} over the $m$ element vector $\theta\geq 0$ is a non-negative linear least squares problem
+that we solve by using the R function nnls() from the package with the same name (@mullen_vanstokkum_24). The R function strainSSMissing() calls nnls(), as well as eigs_sym
+from RSpectra, to solve the two ALS subproblems.
+
+We give two examples. The first uses the classical Morse code data from @rothkopf_57. The data are
+confusion probabilities between 36 auditory Morse code signals, collected from 598 airmen.
+For details of the design we refer to Rothkopf. The data are available, for example, in the smacof package (@deleeuw_mair_A_09c). With 36 objects there are 630 dissimilarities. We ran the
+strainSSMissing() function with 0, 5, 10, 50, and 100 random dissimilarities missing. The five configurations are matched with procrustus() from procrustus.R, which
+minimizes $\sum_k\|Z-X_kM_k\|^2$ over $Z$ and the square orthonormal $M_k$.
+
+```{r missing, echo = FALSE, fig.align = "center", fig.width = 8, fig.height = 8, cache = TRUE} 
+h100 <- strainSSMissing(misData(morseData, 100), verbose = FALSE)
+h50 <- strainSSMissing(misData(morseData, 50), verbose = FALSE)
+h10 <- strainSSMissing(misData(morseData, 10), verbose = FALSE)
+h5 <- strainSSMissing(misData(morseData, 5), verbose = FALSE)
+h0 <- strainSSMissing(misData(morseData, 0), verbose = FALSE)
+h <- list(h0$conf, h5$conf, h10$conf, h50$conf, h100$conf)
+h <- procrustus(h, itmax = 100, verbose = FALSE)
+par(pty="s")
+plot(h$x[[1]], type = "n", xlab = "dim 1", ylab = "dim 2", main = "Morse data, various numbers of missing")
+text(h$x[[1]], "1")
+text(h$x[[2]], "2")
+text(h$x[[3]], "3")
+text(h$x[[4]], "4")
+text(h$x[[5]], "5")
+text(h$z, "z", col = "RED", cex =2)
+```
+Th number of iterations for 0, 5, 10, 50, 100 missing data is
+`r c(h0$itel, h5$itel, h10$itel, h50$itel, h100$itel)` and
+strain is `r c(h0$loss, h5$loss, h10$loss, h50$loss, h100$loss)`.
+The plot shows a very stable solution.
+
+## Ordinal MDS
+
+@trosset_98
+
+$$
+(\delta - d)'J\otimes J(\delta - d)
+$$
+$$
+\delta=\tilde\delta+(\delta-\tilde\delta)
+$$
+$$
+((\delta-\tilde\delta) - (d-\tilde\delta))'J\otimes J((\delta-\tilde\delta) - (d-\tilde\delta))\leq
+\sigma(\tilde\delta)-2(d-\tilde\delta)'J\otimes J(\delta-\tilde\delta)+\|\delta-\tilde\delta\|^2 
+$$
+$$
+\|\delta-(\tilde\delta-(J\otimes J)(\tilde\delta-d))\|^2=\|\Delta-(\tilde\Delta-J(\tilde\Delta-D)J))\|^2
+$$
+
+\sectionbreak
+
+# Discussion
+
+weighted strain
+
+\sectionbreak
+
+# References
