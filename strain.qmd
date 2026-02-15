@@ -69,9 +69,9 @@ In Mutidimensional Scaling (MDS) the strain loss function is defined as
 \begin{equation}
 \sigma(X,\Delta):=\frac14\text{tr}\ \{J(\Delta^2-D^2(X))J\}^2\label{eq-strain}
 \end{equation}
-Here $J$ is the centering matrix of order $n$, i.e. $J:=I-n^{-1}E$, with $E$ a matrix with all elements equal to one. Matrix $\Delta^2$ has squared dissimimarities and $D^2(X)$ contains the squared Euclidean distances between the rows of an $n\times p$ column-centered configuration matrix $X$.
+Here $J$ is the centering matrix of order $n$, i.e. $J:=I-n^{-1}E$, with $E$ a matrix with all elements equal to one. Matrix $\Delta^2$ has squared dissimilarities and $D^2(X)$ contains the squared Euclidean distances between the rows of an $n\times p$ column-centered configuration matrix $X$.
 
-We will also use another representation of strain in this paper. By double-centering we find
+We will also use another representation of strain in this paper. By carrying out the double-centering we find
 \begin{equation}
 \sigma(X,\Delta)=\text{tr}\ (C(\Delta)- XX')^2.\label{eq-strainc}
 \end{equation}
@@ -82,16 +82,47 @@ C(\Delta):=-\frac12 J\Delta^2J.\label{eq-c}
 
 In non-metric MDS we have to minimize strain over both $X$ and $\Delta$, where $\Delta$ varies in some subset of the space $\mathcal{D}$ of non-negative, symmetric and hollow matrices of order $n$. In @trosset_98 there is a nice overview of previous attempts to minimize non-metric strain in MDS. 
 
+The simplest, and oldest, form of non-metric scaling estimates the additive
+constant. Thus $\delta_{ij}=\delta_{ij}^0+\theta$ for all $i\not= j$, where
+$\delta_{ij}^0$ are the given dissimilarities. Only one additional parameter
+needs to be estimated, with the side-condition that the adjusted $\delta_{ij}$
+are non-negative. The next non-metric scaling problem occurs when
+some of the $\delta_{ij}$ are missing, either by accident or by design.
+Thus
+$$
+\delta_{ij}=\begin{cases}\delta_{ij}^0&\text{ for non-missing},\\
+\theta_{ij}&\text{ for missing}.
+\end{cases}
+$$
+Thus the number of additional parameters is equal to the number of
+missing elements. We will require the $\theta_{ij}$ to be
+non-negative. An important speciasl case of the missig data
+problem is the unfolding problem, in which we have two sets
+of objects. The between-set distances are known, while both 
+matrices of within-set distances are missing.
 
+A third important form of non-metric MDS is
+ordinal MDS. We require the $\delta_{ij}$ to non-negative and monotone with
+the $\delta_{ij}^0$. More precisely if $\delta_{ij}^0\geq\delta_{kl}^0$
+then we must have $\delta_{ij}\geq\delta_{kl}\geq 0$.
+
+For the additive constant problem and the missing data problem the
+constraint sets are convex polyhedrons that do not contain the 
+origin, but for ordinal MDS $\Delta=0$ satisfies the ordinal
+constraints. Choosing $X=0$ and $\Delta=0$ produces $\sigma=0$
+which is clearly the global minimum. To prevent this trivial
+solution from happening we use a normalization condition on
+either $X$ or $\Delta$ thate keeps both of them away from 
+the origin.
 
 \sectionbreak
 
 # Alternating Least Squares 
 
 In our technique for strain minimization we apply alternating least squares (ALS)
-to loss function \eqref{eq-strain}. We start with some initial estimate $\smash{\Delta^{(0)}}$. Then, in each iteration, there aretwo subproblems. We first minimize strain
+to loss function \eqref{eq-strain}. We start with some initial estimate $\smash{\Delta^{(0)}}$. Then, in each iteration, there are two subproblems. We first minimize strain
 over $X$ with $\Delta$ fixed at its current value, and then minimize over $\Delta$
-in $\mathcal{D}$ with $X$ fixed at its current value, which is the optimal vcalue of the first subproblem in the iteration. Then we test for convergence, and if the loss function still decreases we go to the next iteration. 
+in $\mathcal{D}$ with $X$ fixed at its current value, which is the optimal value from the first subproblem in the iteration. Then we test for convergence, and if the loss function still decreases we go to the next iteration. 
 
 In iteration $k$ this means
 \begin{subequations}
@@ -101,7 +132,7 @@ X^{(k)}&=\mathop{\text{argmin}}_X\sigma(X,\Delta^{(k-1)}),\\
 \end{align}
 \end{subequations}
 If a subproblem in an iteration is too complicated for some reason, then we
-merely make a step towards the conditional minimum, making sure that
+merely make a step towards its minimum, making sure that
 \begin{equation}
 \sigma(X^{(k)},\Delta^{(k)})<\sigma(X^{(k)},\Delta^{(k-1)})<\sigma(X^{(k-1)},\Delta^{(k-1)}).
 \end{equation}
@@ -193,30 +224,53 @@ The plot shows a very stable solution.
 
 ## Ordinal MDS
 
-The problem of minimizing strain over $\Delta$ for fixed $D$ can be written in vector form, by using the $\text{vec}()$ of $\Delta$ and $D$, and by using the 
+The problem of minimizing strain over $\Delta$ for fixed $D^2$ can be written in vector form, by using the $\text{vec}()$ of $\Delta$ and $D^2$, and by using the 
 Kronecker product. This gives
-$$
-\sigma(\delta)=\frac14(\delta - d)'J\otimes J(\delta - d)
-$$
-Without loss of generality we require the elements of $\delta$ to be
-increasing.
+\begin{equation}
+\sigma(\delta)=\frac14(\delta - d^2)'J\otimes J(\delta - d^2)\label{eq-strainvec}
+\end{equation}
+Note that we fit disparities $\delta$ to squared distances.
+Without loss of generality we require that the data are ordered such that the elements of $\delta$ must be increasing.
 
 This is a weighted monotone regression problem. It is more complicated
 than standard monotone regression because of the weights $J\otimes J$, which
-are not diagonal. Thus ..., although convex, is not separable. In addition $J\otimes J$ is singular, having $(n-1)^2$ unit and $2n-1$ zero eigenvalues. Routines such as PAVA cannot be used, although active set methods are still a viable alternative (@deleeuw_hornik_mair_A_09). We will go an alternative route, using majorization to reduce the weighted least squares problem to a sequence of unweighted ones, for which we can use ordinary monotone regression. This follows the work of @kiers_97 and @groenen_giaquinto_kiers_03.
+are not diagonal. Thus strain as a function of $\delta$, although convex, is not separable. In addition $J\otimes J$ is singular, having $(n-1)^2$ unit eigenvalues and $2n-1$ zero eigenvalues. Routines such as PAVA cannot be used, although active set methods are still a viable alternative (@deleeuw_hornik_mair_A_09). 
+
+We will go an alternative route, using majorization to reduce the weighted least squares problem to a sequence of unweighted problems, for which we can use ordinary monotone regression. Related results on majorizing weighted by unweighted least squares are in @kiers_97 and @groenen_giaquinto_kiers_03.
 
 Suppose $\tilde\delta$ is the current best value of the disparities. 
-Then
-\begin{multline}
-\sigma(\delta)=\frac14((\delta-\tilde\delta) - (d-\tilde\delta))'J\otimes J((\delta-\tilde\delta) - (d-\tilde\delta))\leq\\
-\frac14\{\sigma(\tilde\delta)-2(d-\tilde\delta)'J\otimes J(\delta-\tilde\delta)+(\delta-\tilde\delta)'(\delta-\tilde\delta)\}
-\end{multline}
-In majorization we minimize the last term in ... Ignoring terms which do
-not depend on $\delta$ this is the same as minimizing
+Write $\delta=\tilde\delta+(\delta-\tilde\delta)$ and
+expand strain around $\tilde\delta$.
+\begin{equation}
+\sigma(\delta)=\sigma(\tilde\delta)+\frac12(\delta-\tilde\delta)'J\otimes J(\tilde\delta-d^2)+\frac14(\delta-\tilde\delta)'J\otimes J(\delta-\tilde\delta)\}, 
+\end{equation}
+Because $J\otimes J\lesssim I$ we have
+$\sigma(\delta)\leq\eta(\delta,\tilde\delta)$
+with
+\begin{equation}
+\eta(\delta,\tilde\delta):=\sigma(\tilde\delta) +\frac12(\delta-\tilde\delta)'J\otimes J(\tilde\delta-d^2) +\frac14(\delta-\tilde\delta)'(\delta-\tilde\delta)
+\end{equation}
+The majorization, or MM, algorithm minimizes $\eta$ over vectors $\delta$ in the polyhedral convex cone of vectors withnincresing elements to find the update $\delta^+$.
+To simplify the expression for $\eta$ we "complete the square". 
+\begin{equation}
+\eta(\delta,\tilde\delta):=\sigma(\tilde\delta)+\frac14(\delta-\hat\delta)'(\delta-\hat\delta)-\frac14(\tilde\delta-d^2)'J\otimes J(\tilde\delta-d^2)
+\end{equation}
+with
 $$
-\|\delta-(\tilde\delta-(J\otimes J)(\tilde\delta-d))\|^2=\|\Delta-(\tilde\Delta-J(\tilde\Delta-D)J))\|^2
+\hat\delta:=\tilde\delta-(J\otimes J)(\tilde\delta-d^2)=(I-(J\otimes J))\tilde\delta+(J\otimes J)d^2,
 $$
+where the last expression shows $\hat\delta$ is a matrix-weighted average
+of the "conservative" part $\tilde\delta$
+and the "progressive" part $d^2$ (@chamberlain_leamer_76). Finally the update $\delta^+$ is the least squares projection of $\hat\delta$ on the cone, i.e. the unweighted monotone regression on $\hat\delta$.
+$$
+\sigma(\delta^+)\leq\eta(\delta^+,\tilde\delta)\leq\eta(\tilde\delta,\tilde\delta)=\sigma(\tilde\delta)
+$$
+In the substep of ALS in which we improve $\delta$ we make a number of "inner" majorization iterations. In the later "outer" ALS iterations we will already have a good initial estimate to start these "inner" iterations.
 
+Switching back to matrices definition ... becomes
+$$
+\hat\Delta:=\tilde\Delta-J(\tilde\Delta-D^2)J.
+$$
 
 \sectionbreak
 
@@ -243,16 +297,18 @@ and costly. As a consequence non-metric MDS techniques minimizing strain have no
 @trosset_98 discusses an implementation or ordinal MDS uing strain. His
 aproach is quite different from ours, because it does not use ALS but
 gradient projection. More importantly, Trosset projects out the 
-optimization over $X$. Thus his strain is a function of $\Delta$ only,
+optimization over $X$. He calls this "variable reduction", to contrast it with "variable alternation". Thus his strain is a function of $\Delta$ only,
 defined as
-$$
+\begin{equation}
 \sigma(\Delta)=\min_X\text{tr}\ (C(\Delta)- XX')^2=\sum_{r=p+1}^n\lambda_r^2(C_+(\Delta)),
-$$
+\label{eq-varred}
+\end{equation}
 where the $\lambda_r$ are the $n-p$ smallest eigenvalues of its argument, and with $C_+$ the positive definite part of $C$. This loss function is then
 minimized over $\Delta$ by gradient projection, constrained by the linear inequalities that impose monotonicity. It is unclear how this compares to ALS,
 although we can say that in general projecting out a set of unknowns tends to
 accelerate convergence, at the cost of more complicated subproblems in each
-iteration. Also, unlike ALS, gradient projection implies choosing a step-size procedure to guarantee convergence.
+iteration. Also, unlike ALS, gradient projection implies choosing a step-size procedure to guarantee convergence. Projection seems especially suitable for the additive constant problem in which
+\eqref{eq-varred} is a function of a single parameter, which can be minimized in a number of ways. 
 
 weighted strain
 
