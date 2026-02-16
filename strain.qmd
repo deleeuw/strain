@@ -197,17 +197,16 @@ from RSpectra, to solve the two ALS subproblems.
 We give two examples. The first uses the classical Morse code data from @rothkopf_57. The data are
 confusion probabilities between 36 auditory Morse code signals, collected from 598 airmen.
 For details of the design we refer to Rothkopf. The data are available, for example, in the smacof package (@deleeuw_mair_A_09c). With 36 objects there are 630 dissimilarities. We ran the
-strainSSMissing() function with 0, 5, 10, 50, and 100 random dissimilarities missing. The five configurations are matched with procrustus() from procrustus.R, which
-minimizes $\sum_k\|Z-X_kM_k\|^2$ over $Z$ and the square orthonormal $M_k$.
+strainSSMissing() function with 0, 5, 10, 50, and 100 random dissimilarities missing. The five configurations are matched with procrustus() from procrustus.R, which minimizes $\sum_k\|Z-X_kM_k\|^2$ over $Z$ and the square orthonormal $M_k$.
 
-```{r missing, echo = FALSE, fig.align = "center", fig.width = 8, fig.height = 8, cache = TRUE} 
+```{r missing, echo = FALSE, fig.align = "center", fig.width = 8, fig.height = 8, cache = FALSE} 
 h100 <- strainSSMissing(misData(morseData, 100), verbose = FALSE)
 h50 <- strainSSMissing(misData(morseData, 50), verbose = FALSE)
 h10 <- strainSSMissing(misData(morseData, 10), verbose = FALSE)
 h5 <- strainSSMissing(misData(morseData, 5), verbose = FALSE)
 h0 <- strainSSMissing(misData(morseData, 0), verbose = FALSE)
 h <- list(h0$conf, h5$conf, h10$conf, h50$conf, h100$conf)
-h <- procrustus(h, itmax = 100, verbose = FALSE)
+h <- procrustus(h, itmax = 1000, eps = 1e-10, verbose = FALSE)
 par(pty="s")
 plot(h$x[[1]], type = "n", xlab = "dim 1", ylab = "dim 2", main = "Morse data, various numbers of missing")
 text(h$x[[1]], "1")
@@ -217,60 +216,75 @@ text(h$x[[4]], "4")
 text(h$x[[5]], "5")
 text(h$z, "z", col = "RED", cex =2)
 ```
-Th number of iterations for 0, 5, 10, 50, 100 missing data is
+The plot shows a stable solution. Points are labeled "0" for no missing,
+"1" for 5 missing, and so on. The red points are for the matched $Z$
+matrix. The number of iterations for 0, 5, 10, 50, 100 missing data is
 `r c(h0$itel, h5$itel, h10$itel, h50$itel, h100$itel)` and
 strain is `r c(h0$loss, h5$loss, h10$loss, h50$loss, h100$loss)`.
-The plot shows a very stable solution.
+
+roskam
+
+
 
 ## Ordinal MDS
 
-The problem of minimizing strain over $\Delta$ for fixed $D^2$ can be written in vector form, by using the $\text{vec}()$ of $\Delta$ and $D^2$, and by using the 
-Kronecker product. This gives
+For fixed $D$ strain is a function of the disparities $\Delta$, which are required to be monotone with $\Delta_0$. Thus
 \begin{equation}
-\sigma(\delta)=\frac14(\delta - d^2)'J\otimes J(\delta - d^2)\label{eq-strainvec}
+\sigma(\Delta)=\frac14\text{tr}\ J(\Delta - D^2)J(\Delta - D^2)J\label{eq-straindel}
 \end{equation}
-Note that we fit disparities $\delta$ to squared distances.
-Without loss of generality we require that the data are ordered such that the elements of $\delta$ must be increasing.
+Note that we fit disparities $\Delta$ to squared distances.
+By using the vec of our matrices $\Delta$ and $D$ strain can also be written in the computationally more friendly form
+\begin{equation}
+\sigma(\delta)=\frac14(\delta - d^2)(J\otimes J)(\delta - d^2)\label{eq-strainvec},
+\end{equation}
+with $J\otimes J$ the Kronecker product.
 
-This is a weighted monotone regression problem. It is more complicated
+Equation  \eqref{eq-strainvec} shows that minimizing strain over $\delta$ is a weighted monotone regression problem. It is more complicated
 than standard monotone regression because of the weights $J\otimes J$, which
 are not diagonal. Thus strain as a function of $\delta$, although convex, is not separable. In addition $J\otimes J$ is singular, having $(n-1)^2$ unit eigenvalues and $2n-1$ zero eigenvalues. Routines such as PAVA cannot be used, although active set methods are still a viable alternative (@deleeuw_hornik_mair_A_09). 
 
 We will go an alternative route, using majorization to reduce the weighted least squares problem to a sequence of unweighted problems, for which we can use ordinary monotone regression. Related results on majorizing weighted by unweighted least squares are in @kiers_97 and @groenen_giaquinto_kiers_03.
 
-Suppose $\tilde\delta$ is the current best value of the disparities. 
-Write $\delta=\tilde\delta+(\delta-\tilde\delta)$ and
-expand strain around $\tilde\delta$.
+Suppose $\tilde\Delta$ is the current best value of the disparities. 
+Expand strain around $\tilde\Delta$.
 \begin{equation}
-\sigma(\delta)=\sigma(\tilde\delta)+\frac12(\delta-\tilde\delta)'J\otimes J(\tilde\delta-d^2)+\frac14(\delta-\tilde\delta)'J\otimes J(\delta-\tilde\delta)\}, 
+\sigma(\Delta)=\sigma(\tilde\Delta)+\frac12\text{tr}\ J(\Delta-\tilde\Delta)J(\tilde\Delta-D^2)+\frac14\text{tr}\ J(\Delta-\tilde\Delta)J(\Delta-\tilde\Delta), \label{eq-strexpand}
 \end{equation}
 Because $J\otimes J\lesssim I$ we have
-$\sigma(\delta)\leq\eta(\delta,\tilde\delta)$
-with
+$\sigma(\Delta)\leq\eta(\Delta,\tilde\Delta)$,
+with the majorization function $\eta$ defined as
 \begin{equation}
-\eta(\delta,\tilde\delta):=\sigma(\tilde\delta) +\frac12(\delta-\tilde\delta)'J\otimes J(\tilde\delta-d^2) +\frac14(\delta-\tilde\delta)'(\delta-\tilde\delta)
+\eta(\Delta,\tilde\Delta):=\sigma(\tilde\Delta) +\frac12\text{tr}\  J(\Delta-\tilde\Delta)J(\tilde\Delta-D^2) +\frac14\text{tr}\ (\Delta-\tilde\Delta)^2.\label{eq-etadef}
 \end{equation}
-The majorization, or MM, algorithm minimizes $\eta$ over vectors $\delta$ in the polyhedral convex cone of vectors withnincresing elements to find the update $\delta^+$.
-To simplify the expression for $\eta$ we "complete the square". 
-\begin{equation}
-\eta(\delta,\tilde\delta):=\sigma(\tilde\delta)+\frac14(\delta-\hat\delta)'(\delta-\hat\delta)-\frac14(\tilde\delta-d^2)'J\otimes J(\tilde\delta-d^2)
-\end{equation}
-with
-$$
-\hat\delta:=\tilde\delta-(J\otimes J)(\tilde\delta-d^2)=(I-(J\otimes J))\tilde\delta+(J\otimes J)d^2,
-$$
-where the last expression shows $\hat\delta$ is a matrix-weighted average
-of the "conservative" part $\tilde\delta$
-and the "progressive" part $d^2$ (@chamberlain_leamer_76). Finally the update $\delta^+$ is the least squares projection of $\hat\delta$ on the cone, i.e. the unweighted monotone regression on $\hat\delta$.
-$$
-\sigma(\delta^+)\leq\eta(\delta^+,\tilde\delta)\leq\eta(\tilde\delta,\tilde\delta)=\sigma(\tilde\delta)
-$$
-In the substep of ALS in which we improve $\delta$ we make a number of "inner" majorization iterations. In the later "outer" ALS iterations we will already have a good initial estimate to start these "inner" iterations.
+The majorization, or MM, algorithm minimizes $\eta$ over vectors $\Delta$ in the polyhedral convex cone of vectors withnincresing elements to find the update $\Delta^+$.
 
-Switching back to matrices definition ... becomes
-$$
-\hat\Delta:=\tilde\Delta-J(\tilde\Delta-D^2)J.
-$$
+To simplify the expression for $\eta$ we "complete the square". Relying heavily
+on the idempotency of $J$, and thus of $J\otimes J$, we find
+\begin{equation}
+\eta(\Delta,\tilde\Delta):=\frac14\text{tr}\ (\Delta-\hat\Delta)^2,\label{eq-etasimp}
+\end{equation}
+with
+\begin{equation}
+\hat\Delta:=\tilde\Delta-J(\tilde\Delta-D^2)J.\label{hdeltadef}
+\end{equation}
+Thus $\hat\Delta$ is a matrix-weighted average of the “conservative” part $\tilde\Delta$ and the “progressive” part $D^2$ (Chamberlain and Leamer (1976)).
+
+Finally the update $\Delta^+$ is the least squares projection of $\hat\Delta$ on the cone, i.e. the unweighted monotone regression on $\hat\Delta$. We now have
+the sandwich inequality
+\begin{equation}
+\sigma(\Delta^+)\leq\eta(\Delta^+,\tilde\Delta)\leq\eta(\tilde\Delta,\tilde\Delta)=\sigma(\tilde\Delta).\label{eq-sandwich}
+\end{equation}
+In the substep of ALS in which we improve $\Delta$ we make a number of "inner" majorization iterations. In the later "outer" ALS iterations we will already have a good initial estimate to start these "inner" iterations.
+
+## Bound Constraints
+
+Bound constraints are of the form $\Delta_-\leq\Delta\leq\Delta_+$, where
+the inequality signs refer to elementwise comparisons. Thus each $\delta_{ij}$
+is required to be in a given interval (which may be infinitely large). We use the same majorization results as in the previous section for updating $\Delta$, i.e. we project each element $\hat\Delta$ from \eqref{eq-hdeltadef} on the corresponding interval. Each update
+$\delta^+_{ij}$ is thus equal to either $\hat\delta_{ij}$ or to the closest
+end-point of its interval. By choosing the interval to be the non-negative
+real axis this gives us another way, using majorization, to impute missing data.
+
 
 \sectionbreak
 
@@ -280,19 +294,26 @@ $$
 
 # Discussion
 
-Almost all  MDS loss functions are of the form
+Most MDS loss functions are of the form
 \begin{equation}
-\sigma(x):=\sum_k w_k(f(\delta_k)-f(d_k(X)))^2\label{eq-fstress}
+\sigma(X):=\sum_k w_k(f(\delta_k)-f(d_k(X)))^2\label{eq-fstress}
 \end{equation}
 for some given function $f$. @groenen_deleeuw_mathar_C_95 call loss function \eqref{eq-fstress} fStress. For $f$ equal to the identity we have stress (@kruskal_64a), for $f$ the square we have sstress (@takane_young_deleeuw_A_77), and for $f$ the logarithm we have log-stress (@ramsay_77). 
+If we compare \eqref{eq-fstress} and strain we see that strain is more complicated because of the non-diagonal Kronecker weights. This makes the usual optimal transformations in MDS, such as monotone regression in the ordinal case, more complicated and costly. As a consequence non-metric MDS techniques minimizing strain have not been implemented and used to the same degree as techniques based on variations of fStress. 
 
-If we ravel the matrices $\Delta$ and $D(X)$ to vectors strain becomes
-\begin{equation}
-\sigma(X,\Delta)=\frac14(\delta-d(X))'J\otimes J(\delta-d(X)),\label{eq-ravel}
-\end{equation}
-with $\otimes$ the Kronecker product. If we compare \eqref{eq-fstress} and \eqref{eq-ravel} we see that strain is more complicated because of the non-diagonal Kronecker weights. This makes the usual optimal transformations
-in MDS, such as monotone regression in the ordinal case, more complicated
-and costly. As a consequence non-metric MDS techniques minimizing strain have not been implemented and used to the same degree as techniques based on variations of fStress. 
+On the other hand in fStress the minimization over $X$ for given $\Delta$ is
+more costly than it is for strain, in which we simply have to find the
+$p$ largest eigenvalues and corresponding eigenvectors of a matrix. Thus,
+the ALS framework, for fStress finding optimal $\Delta$ for fixed $x$ is
+cheap and finding optimal $X$ for fixed $\Delta$ is expensive. For strain
+it is exactly the other way around. To put it even more sharply, in
+fStress finding the optimal $X$ is impossible, because it requires an
+inifinite iterative process which can converge to a local minimum. For strain,
+although solving the eigen-problem is also an infinite iterative
+process, it quickly gets us as close as we want to the global minimum (for
+given $Delta$, that is).
+
+@trosset_02
 
 @trosset_98 discusses an implementation or ordinal MDS uing strain. His
 aproach is quite different from ours, because it does not use ALS but

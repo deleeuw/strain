@@ -55,3 +55,36 @@ fromMDSData <- function(theData) {
   }
   return(list(delta = as.dist(delta), weights = as.dist(weights)))
 }
+
+makeBoundsData <- function(delta, lower, upper, weights = NULL) {
+  nobj <- attr(delta, "Size")
+  if (is.null(weights)) {
+    weights <- as.dist(1 - diag(nobj))
+  }
+  theData <- NULL
+  k <- 1
+  for (j in 1:(nobj - 1)) {
+    for (i in (j + 1):nobj) {
+      if ((weights[k] > 0) &&
+          (!is.na(weights[k])) && (!is.na(delta[k]))) {
+        theData <- rbind(theData, c(i, j, delta[k], lower[k], upper[k], weights[k]))
+      }
+      k <- k + 1
+    }
+  }
+  colnames(theData) <- c("i", "j", "delta", "lower", "upper", "weights")
+  ndat <- nrow(theData)
+  theData <- theData[order(theData[, 3]), ]
+  result <- list(
+    iind = theData[, 1],
+    jind = theData[, 2],
+    delta = theData[, 3],
+    lower = theData[, 4],
+    upper = theData[, 5],
+    weights = theData[, 6],
+    nobj = nobj,
+    ndat = ndat
+  )
+  class(result) <- "smacofBoundsData"
+  return(result)
+}

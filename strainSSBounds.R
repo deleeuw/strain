@@ -1,29 +1,28 @@
 
-
 library(RSpectra)
-dyn.load("smacofIsotone.so")
 
-strainSSOrdinal <- function(theData,
-                            ndim = 2,
-                            ties = 1,
-                            itmax = 1000,
-                            eps = 1e-6,
-                            verbose = TRUE) {
+strainSSBounds <- function(theData,
+                           ndim = 2,
+                           ties = 1,
+                           itmax = 1000,
+                           eps = 1e-6,
+                           verbose = TRUE) {
   nobj <- theData$nobj
   ndat <- theData$ndat
   blks <- theData$blocks
   wght <- theData$weights
   iind <- theData$iind
   jind <- theData$jind
+  lower <- theData$lower
+  upper <- theData$upper
   dhat <- matrix(0, nobj, nobj)
+  lower <
   for (k in 1:ndat) {
     i <- theData$iind[k]
     j <- theData$jind[k]
-    dhat[i, j] <- dhat[j, i] <- theData$delta[k]^2
+    dhat[i, j] <- dhat[j, i] <- theData$delta[k]
   }
-  # initial dhat are the squared delta
-  dhat <- dhat / sqrt(sum(dhat^2))
-  bmat <- -doubleCenterSS(dhat) / 2
+  bmat <- -doubleCenterSS(dhat^2) / 2
   ev <- eigs_sym(bmat, ndim, which = "LA")
   fv <- pmax(0, ev$values)
   evev <- diag(sqrt(fv))
@@ -38,43 +37,14 @@ strainSSOrdinal <- function(theData,
       i <- iind[k]
       j <- jind[k]
       daux[k] <- dhat[i, j] - hold[i, j]
+      if (daux[k] < lower[k]) {
+        daux[k] <- lower[k]
+      }
+      if (daux[k] > upper[k]) {
+        daux[k] <- upper[k]
+      }
+      dhat[i, j] <- dhat[j, i] <- daux[k]
     }
-    if (ties == 1) {
-      h <- .C(
-        "primaryApproach",
-        ndat = as.integer(ndat),
-        blks = as.integer(blks),
-        daux = as.double(daux),
-        wght = as.double(wght),
-        dist = as.double(dold),
-        iind = as.integer(iind),
-        jind = as.integer(jind)
-      )
-    }
-    if (ties == 2) {
-      h <- .C(
-        "secondaryApproach",
-        ndat = as.integer(ndat),
-        blks = as.integer(blks),
-        daux = as.double(daux),
-        wght = as.double(wght)
-      )
-    }
-    if (ties == 3) {
-      h <- .C(
-        "tertiaryApproach",
-        ndat = as.integer(ndat),
-        blks = as.integer(blks),
-        daux = as.double(daux),
-        wght = as.double(wght)
-      )
-    }
-    for (k in 1:ndat) {
-      i <- iind[k]
-      j <- jind[k]
-      dhat[i, j] <- dhat[j, i] <- h$daux[k]
-    }
-    dhat <- dhat / sqrt(sum(dhat^2))
     hmid <- doubleCenterSS(dhat - dold^2)
     smid <- sum(hmid^2) / 4
     bmat <- -doubleCenterSS(dhat) / 2
@@ -121,9 +91,17 @@ strainSSOrdinal <- function(theData,
     dold <- dnew
     hold <- hnew
   }
+  ddis <- rep(0, ndat)
+  for (k in 1:ndat) {
+    i <- iind[k]
+    j <- jind[k]
+    ddis[k] <- dnew[i, j]
+  }
   return(list(
     conf = xnew,
-    dmat = dnew,
+    delt = theData$delta,
+    daux = daux,
+    ddis = ddis,
     itel = itel,
     loss = snew
   ))
