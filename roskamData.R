@@ -1,3 +1,6 @@
+source("smacofDataUtilities.R")
+library("RSpectra")
+
 roskam <-
 structure(list(SOC = c("1", "1", "1", "1", "7", "6", "2", "4", 
 "4", "3", "4", "3", "2", "2", "7", "5", "5", "9", "9", "8", "7", 
