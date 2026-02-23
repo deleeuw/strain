@@ -49,5 +49,14 @@ roskamWeights[1:39, 39 + 1:9] <- 1
 roskamWeights <- roskamWeights + t(roskamWeights)
 roskamDist <- as.dist(roskamMatrix)
 roskamWght <- as.dist(roskamWeights)
-roskamData <- makeMDSData(roskamDist, roskamWght)
+roskamData <- makeMDSData(roskamDist)
 
+lower <- upper <- matrix(0, 48, 48)
+lower[1:39, 39 + 1:9] <- upper[1:39, 39 + 1:9] <- roskamNumeric
+lower <- lower + t(lower)
+upper <- upper + t(upper)
+upper[1:39, 1:39] <- Inf
+upper[39 + 1:9, 39 + 1:9] <- Inf
+lower <- as.dist(lower)
+upper <- as.dist(upper)
+roskamBounds <- makeBoundsData(roskamDist, lower, upper)

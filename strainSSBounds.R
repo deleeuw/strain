@@ -3,7 +3,6 @@ library(RSpectra)
 
 strainSSBounds <- function(theData,
                            ndim = 2,
-                           ties = 1,
                            itmax = 1000,
                            eps = 1e-6,
                            verbose = TRUE) {

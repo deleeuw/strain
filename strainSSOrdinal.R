@@ -1,5 +1,3 @@
-
-
 library(RSpectra)
 dyn.load("smacofIsotone.so")
 

@@ -71,26 +71,36 @@ In Mutidimensional Scaling (MDS) the strain loss function is defined as
 \end{equation}
 Here $J$ is the centering matrix of order $n$, i.e. $J:=I-n^{-1}E$, with $E$ a matrix with all elements equal to one. Matrix $\Delta^2$ has squared dissimilarities and $D^2(X)$ contains the squared Euclidean distances between the rows of an $n\times p$ column-centered configuration matrix $X$.
 
-We will also use another representation of strain in this paper. By carrying out the double-centering we find
+We will also use another representation of strain in this paper. By applying classical embedding result of @schoenberg_35 and @young_householder_38, in the version proposed by @torgerson_58, we find
 \begin{equation}
-\sigma(X,\Delta)=\text{tr}\ (C(\Delta)- XX')^2.\label{eq-strainc}
+\sigma(X,\Delta)=\text{tr}\ (C- XX')^2.\label{eq-strainc}
 \end{equation}
 with
 \begin{equation}
-C(\Delta):=-\frac12 J\Delta^2J.\label{eq-c}
+C:=-\frac12 J\Delta^2J.\label{eq-c}
 \end{equation}
 
-In non-metric MDS we have to minimize strain over both $X$ and $\Delta$, where $\Delta$ varies in some subset of the space $\mathcal{D}$ of non-negative, symmetric and hollow matrices of order $n$. 
+In *metric* MDS the matrix $\Delta$ is constant and given, and we minimize
+strain over $X$. From \eqref{eq-strainc} the basic theorem of classical scaling (@torgerson_58), also known as  principal coordinate analysis (@gower_66), tells us that the optimal $X$ are the eigenvectors corresponding with the $p$ largest eigenvalues of $C_+$, the positive definite part of $C$, with each eigenvector scaled to have norm equal to the square root of the corresponding eigenvalue There are rigorous proofs in @keller_62 and @deleeuw_R_74c.
 
-In @trosset_97, @trosset_00, @trosset_98, @trosset_02 there is a nice overview of previous attempts to minimize non-metric strain in MDS. 
+In non-metric MDS we have to minimize strain over both $X$ and $\Delta$, where $\Delta$ varies in some subset of the space $\mathcal{D}$ of non-negative, symmetric and hollow matrices of order $n$. Classical examples, treated in detail
+below in this paper, are the additive constant problem, the missing data problem, the use of bound constraints, and ordinal non-metric scaling.
 
-@deleeuw_R_74b
+The history of various tentative and/or incomplete attempts to construct a non-metric MDS technique based on strain is in @deleeuw_heiser_C_82 and @trosset_98. The first systematic approach to the problem is @deleeuw_R_74b,
+who discusses the additive constant, the missing data, and the ordinal forms
+of MDS. There is not software, only equations. The paper uses what 
+@trosset_97 calls "variable reduction". The minimum of strain over $X$,
+which is the sum of squares of the discarded eigenvalues of $C_+$, is minimized over $\Delta$. Results from classical perturbation theory are used to 
+give expression for the first and second derivatives of the "reduced"
+loss function, with the implicit understanding that these derivatives
+can be used in a large variety of general-purpose optimization methods.
+An implementation of the same methodology for the additive constant problem
+is in @saito_78. Since the "reduced" strain in this cases only depends on a single parameter (the additive constant) Saito uses a simple bisection-type
+search procedure on the positive real line. 
 
-The simplest, and oldest, form of non-metric scaling estimates the additive
-constant. Thus $\delta_{ij}=\delta_{ij}^0+\theta$ for all $i\not= j$, where
-$\delta_{ij}^0$ are the given dissimilarities. Only one additional parameter
-needs to be estimated, with the side-condition that the adjusted $\delta_{ij}$
-are non-negative. The next non-metric scaling problem occurs when
+A more systematic and general approach was followed by Michael Trosset in a sequence of papers (@trosset_97, @trosset_00, @trosset_98, @trosset_02).
+
+The next non-metric scaling problem occurs when
 some of the $\delta_{ij}$ are missing, either by accident or by design.
 Thus
 $$
@@ -100,9 +110,8 @@ $$
 $$
 Thus the number of additional parameters is equal to the number of
 missing elements. We will require the $\theta_{ij}$ to be
-non-negative. An important speciasl case of the missig data
-problem is the unfolding problem, in which we have two sets
-of objects. The between-set distances are known, while both 
+non-negative. An important speciasl case of the missing data
+problem is the unfolding problem, in which we have similarities between objects in two disjoint sets. The between-set distances are known, while both 
 matrices of within-set distances are missing.
 
 A third important form of non-metric MDS is
@@ -144,9 +153,19 @@ merely make a step towards its minimum, making sure that
 In the first subproblem minimizing strain over $X$ for fixed $\Delta$ is done by computing the diagonal matrix with $p$ dominant eigenvalues $\Lambda_p$ of $C$ and the corresponding eigenvalues $K_p$. Fir this we use the R package RSpectra (@qiu_mei_24). If  $\Lambda_p\geq 0$ then the optimal $X$ is $\smash{K_p\Lambda_p^\frac12}$. If some elements of $\Lambda_p$ are negative, we first replace them by zeroes. This is classical metric
 multidimensional scaling (@torgerson_58, @gower_66, @mardia_78). The fact that computing the classical scaling solution is equivalent to minimizing the loss function \eqref{eq-strain} was first pointed out by @deleeuw_heiser_C_82.
 
-The second subproblem, minimizing strain of $\Delta$ for fixed $X$ (and thus fixed $D$), can take various forms. We discuss some special cases, and their implementation, below.
+The second subproblem, minimizing strain of $\Delta$ for fixed $X$ (and thus fixed $D$), can take various forms. We discuss some of the important special cases, and their implementation in the following sections.
+
+\sectionbreak
+
+# Special Cases
 
 ## The Additive Constant
+
+The simplest, and oldest, form of non-metric scaling estimates the additive
+constant. Thus $\delta_{ij}=\delta_{ij}^0+\theta$ for all $i\not= j$, where
+$\delta_{ij}^0$ are the given dissimilarities. Only one additional parameter
+needs to be estimated, with the side-condition that the adjusted $\delta_{ij}$
+are non-negative. 
 
 If a constant $\theta$ is added to the off-diagonal dissimilarities the disparities are
 \begin{align}
@@ -172,18 +191,7 @@ which is a quartic in $\theta$. Expanding and simplifying gives
 We minimizing the quartic over the half-open interval $\theta\geq-\min\Delta$ using the formulas in @jeffrey_97. We implemented Jeffrey's solution in the C function jeffrey(), which is in the shared library jeffrey.so. The R program strainSSAddOne() loads the shared library and 
 iteratively executes the two ALS sub problems.
 
-Our example is taken from @torgerson_58, pages 280-290. Dissimilarty judgments of nine Munsell
-colors of the same red hue, but differing in brightness and saturation, where collected from 38 subjects using the method of triads. The matrix $\Delta_0$, which Torgerson calls the
-"comparative distances" is taken from his Table 5 on p 286.
-```{r munselldata, echo = FALSE}
-print(munsellMatrix)
-```
-Torgerson (p, 286-287) uses an elegant, but elaborate, method to find an additive constant value of 3.60. His technique is not based on minimization of an explicit loss function. 
-Iterating strainSSAddOne() until strain changes less than `r 1e-10` from one iteration to the 
-next, starting with $\theta=0$ uses 196 iterations and find $\theta=2.85$. Starting with
-Torgerson's 3.6 value for the additive constant gives the same $\theta$ in 184 iterations.
-Of course the `r 1e-10` stopping criterion is much too strict for most applications, although
-a run with even higher precision shows the value for the optimal additive constant only has three stable decimals. Using a more realistic `r 1e-3` requires 105 iterations and gives two stable decimals. In other words, convergence is slow. 
+
 
 ## Imputing Missing Data
 
@@ -261,7 +269,7 @@ In the substep of ALS in which we improve $\Delta$ we make a number of "inner" m
 
 For fixed $D$ strain is a function of the disparities $\Delta$, which are required to be monotone with $\Delta_0$. Thus
 \begin{equation}
-\sigma(\Delta)=\frac14\text{tr}\ J(\Delta - D^2)J(\Delta - D^2)J\label{eq-straindel}
+\sigma(\Delta)=\frac14\text{tr}\ J(\Delta^2 - D^2)J(\Delta - D^2)J\label{eq-straindel}
 \end{equation}
 Note that we fit disparities $\Delta$ to squared distances.
 By using the vec of our matrices $\Delta$ and $D$ strain can also be written in the computationally more friendly form
@@ -307,35 +315,38 @@ the sandwich inequality
 \end{equation}
 In the substep of ALS in which we improve $\Delta$ we make a number of "inner" majorization iterations. In the later "outer" ALS iterations we will already have a good initial estimate to start these "inner" iterations.
 
-Normalization is based on strain as expressed in Equation \eqref{eq-strainc}.
-We minimize strain over $X$ for fixed $\Delta$ under the constraint $\text{tr}\ (X'X)^2=1$. This is equivalent to maximizing $\text{tr}\ X'CX$ over 
-$\text{tr}\ (X'X)^2=1$.
-The stationary equations are
-$$
-CX=\gamma X(X'X)
-$$
-If the SVD of $X$ is $K\Lambda L'$, then we must have $\text{tr}\ \Lambda^4=1$
-and
-$$
-CK\Lambda=\phi K\Lambda^3
-$$
-from which $K\Lambda$ are eigenvectors of $C$ with eigenvalues $\phi\Lambda^2$.
+Normalization: $G=J\Delta^2 J$ $\text{tr}\ G^2=1$.
 
 
 \sectionbreak
 
 # Software
 
-strainSSAddOne()
-strainSSMissing()
-strainSSBound()
-strainSSOrdinal()
+For the four special cases we have discussed  there are four R programs (@r_core_team_25) in the github repository.
+
+- strainSSAddOne()
+- strainSSMissing()
+- strainSSBound()
+- strainSSOrdinal()
 
 \sectionbreak
 
 # Examples
 
 ## The Additive Constant
+
+Our example is taken from @torgerson_58, pages 280-290. Dissimilarty judgments of nine Munsell
+colors of the same red hue, but differing in brightness and saturation, where collected from 38 subjects using the method of triads. The matrix $\Delta_0$, which Torgerson calls the
+"comparative distances" is taken from his Table 5 on p 286.
+```{r munselldata, echo = FALSE}
+print(munsellMatrix)
+```
+Torgerson (p, 286-287) uses an elegant, but elaborate, method to find an additive constant value of 3.60. His technique is not based on minimization of an explicit loss function. 
+Iterating strainSSAddOne() until strain changes less than `r 1e-10` from one iteration to the 
+next, starting with $\theta=0$ uses 196 iterations and find $\theta=2.85$. Starting with
+Torgerson's 3.6 value for the additive constant gives the same $\theta$ in 184 iterations.
+Of course the `r 1e-10` stopping criterion is much too strict for most applications, although
+a run with even higher precision shows the value for the optimal additive constant only has three stable decimals. Using a more realistic `r 1e-3` requires 105 iterations and gives two stable decimals. In other words, convergence is slow. 
 
 ## Imputing Missing Data
 
