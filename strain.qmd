@@ -38,8 +38,17 @@ papersize: letter
 graphics: true
 link-citations: true
 mainfont: Times New Roman
-abstract: TBD
+abstract: The three major loss functions for multidimensional scaling,
+  in order of decreasing popularity, are stress, sstress, and strain. 
+  The strain loss function has been applied mostly in classical 
+  metric MDS of complete distances matrices, although some extensions 
+  to additive constants, bound constraints, missing data, and ordinal 
+  scaling have been discussed in the literature. We use alternating
+  least squares (ALS) and majorization (MM) to develop various forms
+  of non-metric MDS based on strain minimization, together with 
+  corresponding programs in R.
 ---
+
 
 ```{r loadpackages, echo = FALSE}
 suppressPackageStartupMessages(library(knitr, quietly = TRUE))
@@ -212,8 +221,6 @@ Minimizing $\sigma$ from \eqref{eq-strmis} over the $m$ element vector $\theta\g
 that we solve by using the R function nnls() from the package with the same name (@mullen_vanstokkum_24). The R function strainSSMissing() calls nnls(), as well as eigs_sym
 from RSpectra, to solve the two ALS subproblems.
 
-
-
 ## Bound Constraints
 
 Bound constraints are of the form $\Delta_-\leq\Delta\leq\Delta_+$, where
@@ -221,16 +228,15 @@ the inequality signs refer to elementwise comparisons. Thus each $\delta_{ij}$
 is required to be in a given interval (which may be infinitely large). Updating $\Delta$ for given $X$ is a quadratic programming problem. By choosing the interval to be the non-negative real axis this gives us another way, using majorization, to impute missing data. For non-missing data the interval
 has length zero and is equal to the dissimilarity $\delta_{ij}^0$.
 
-Strain for this problem 
 By using the vec of our matrices $\Delta$ and $D$ strain can also be written in the computationally more friendly form
 \begin{equation}
 \sigma(\delta)=\frac14(\delta^2 - d^2)(J\otimes J)(\delta - d^2)\label{eq-strainvec},
 \end{equation}
 with $J\otimes J$ the Kronecker product.
 
-Equation  \eqref{eq-strainvec} shows that minimizing strain over $\delta$ is a weighted monotone regression problem. It is more complicated
-than standard monotone regression because of the weights $J\otimes J$, which
-are not diagonal. Thus strain as a function of $\delta$, although convex, is not separable. In addition $J\otimes J$ is singular, having $(n-1)^2$ unit eigenvalues and $2n-1$ zero eigenvalues. Routines such as PAVA cannot be used, although active set methods are still a viable alternative (@deleeuw_hornik_mair_A_09). 
+Equation  \eqref{eq-strainvec} shows that minimizing strain over $\delta$ is a weighted linear regression problem. It is more complicated
+than standard regression because of the weights $J\otimes J$, which
+are not diagonal. Thus strain as a function of $\delta$, although convex, is not separable. In addition $J\otimes J$ is singular, having $(n-1)^2$ unit eigenvalues and $2n-1$ zero eigenvalues.  
 
 We will go an alternative route, using majorization to reduce the weighted least squares problem to a sequence of unweighted problems, for which we can use ordinary monotone regression. Related results on majorizing weighted by unweighted least squares are in @kiers_97 and @groenen_giaquinto_kiers_03.
 
@@ -258,7 +264,13 @@ with
 \end{equation}
 Thus $\hat\Delta$ is a matrix-weighted average of the “conservative” part $\tilde\Delta$ and the “progressive” part $D^2$ (Chamberlain and Leamer (1976)).
 
-Finally the update $\Delta^+$ is the least squares projection of $\hat\Delta$ on the cone, i.e. the unweighted monotone regression on $\hat\Delta$. We now have
+Finally the update $\Delta^+$ is the unweighted least squares projection of $\hat\Delta$ from \label{hdeltadef} on the hyperrectangle defined by the bounds $\Delta_-$ and $\Delta_+$, i.e. the unweighted bounded regression on $\hat\Delta$. The update $\Delta^+$ is simply
+$$
+\Delta^+=\max(\Delta_-,\min(\hat\Delta, \Delta_+))
+$$
+where max and min are applied elementwise.
+
+We now have
 the sandwich inequality
 \begin{equation}
 \sigma(\Delta^+)\leq\eta(\Delta^+,\tilde\Delta)\leq\eta(\tilde\Delta,\tilde\Delta)=\sigma(\tilde\Delta).\label{eq-sandwich}
@@ -267,53 +279,16 @@ In the substep of ALS in which we improve $\Delta$ we make a number of "inner" m
 
 ## Ordinal MDS
 
-For fixed $D$ strain is a function of the disparities $\Delta$, which are required to be monotone with $\Delta_0$. Thus
+For fixed $D$ strain is a function of the disparities $\Delta$, which are required to be monotone with $\Delta_0$. Thus, using the vec operator in the same way as in the previous section,
 \begin{equation}
-\sigma(\Delta)=\frac14\text{tr}\ J(\Delta^2 - D^2)J(\Delta - D^2)J\label{eq-straindel}
+\sigma(\delta)=\frac14(\delta^2 - d^2)(J\otimes J)(\delta - d^2)\label{eq-strainvec2},
 \end{equation}
-Note that we fit disparities $\Delta$ to squared distances.
-By using the vec of our matrices $\Delta$ and $D$ strain can also be written in the computationally more friendly form
-\begin{equation}
-\sigma(\delta)=\frac14(\delta - d^2)(J\otimes J)(\delta - d^2)\label{eq-strainvec},
-\end{equation}
-with $J\otimes J$ the Kronecker product.
+Note that we fit disparities $\delta$ to squared distances.
 
-Equation  \eqref{eq-strainvec} shows that minimizing strain over $\delta$ is a weighted monotone regression problem. It is more complicated
-than standard monotone regression because of the weights $J\otimes J$, which
-are not diagonal. Thus strain as a function of $\delta$, although convex, is not separable. In addition $J\otimes J$ is singular, having $(n-1)^2$ unit eigenvalues and $2n-1$ zero eigenvalues. Routines such as PAVA cannot be used, although active set methods are still a viable alternative (@deleeuw_hornik_mair_A_09). 
+Now \eqref{eq-strainvec2} shows that minimizing strain over $\delta$ is a non-separable weighted monotone regression problem. Routines such as PAVA cannot be used (@deleeuw_hornik_mair_A_09). We will go the same alternative route as the
+one we used for bound constraints.
 
-We will go an alternative route, using majorization to reduce the weighted least squares problem to a sequence of unweighted problems, for which we can use ordinary monotone regression. Related results on majorizing weighted by unweighted least squares are in @kiers_97 and @groenen_giaquinto_kiers_03.
 
-Suppose $\tilde\Delta$ is the current best value of the disparities. 
-Expand strain around $\tilde\Delta$.
-\begin{equation}
-\sigma(\Delta)=\sigma(\tilde\Delta)+\frac12\text{tr}\ J(\Delta-\tilde\Delta)J(\tilde\Delta-D^2)+\frac14\text{tr}\ J(\Delta-\tilde\Delta)J(\Delta-\tilde\Delta), \label{eq-strexpand}
-\end{equation}
-Because $J\otimes J\lesssim I$ we have
-$\sigma(\Delta)\leq\eta(\Delta,\tilde\Delta)$,
-with the majorization function $\eta$ defined as
-\begin{equation}
-\eta(\Delta,\tilde\Delta):=\sigma(\tilde\Delta) +\frac12\text{tr}\  J(\Delta-\tilde\Delta)J(\tilde\Delta-D^2) +\frac14\text{tr}\ (\Delta-\tilde\Delta)^2.\label{eq-etadef}
-\end{equation}
-The majorization, or MM, algorithm minimizes $\eta$ over vectors $\Delta$ in the polyhedral convex cone of vectors withnincresing elements to find the update $\Delta^+$.
-
-To simplify the expression for $\eta$ we "complete the square". Relying heavily
-on the idempotency of $J$, and thus of $J\otimes J$, we find
-\begin{equation}
-\eta(\Delta,\tilde\Delta):=\frac14\text{tr}\ (\Delta-\hat\Delta)^2,\label{eq-etasimp}
-\end{equation}
-with
-\begin{equation}
-\hat\Delta:=\tilde\Delta-J(\tilde\Delta-D^2)J.\label{hdeltadef}
-\end{equation}
-Thus $\hat\Delta$ is a matrix-weighted average of the “conservative” part $\tilde\Delta$ and the “progressive” part $D^2$ (Chamberlain and Leamer (1976)).
-
-Finally the update $\Delta^+$ is the least squares projection of $\hat\Delta$ on the cone, i.e. the unweighted monotone regression on $\hat\Delta$. We now have
-the sandwich inequality
-\begin{equation}
-\sigma(\Delta^+)\leq\eta(\Delta^+,\tilde\Delta)\leq\eta(\tilde\Delta,\tilde\Delta)=\sigma(\tilde\Delta).\label{eq-sandwich}
-\end{equation}
-In the substep of ALS in which we improve $\Delta$ we make a number of "inner" majorization iterations. In the later "outer" ALS iterations we will already have a good initial estimate to start these "inner" iterations.
 
 Normalization: $G=J\Delta^2 J$ $\text{tr}\ G^2=1$.
 
