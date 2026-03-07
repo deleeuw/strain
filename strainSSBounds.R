@@ -15,7 +15,6 @@ strainSSBounds <- function(theData,
   lower <- theData$lower
   upper <- theData$upper
   dhat <- matrix(0, nobj, nobj)
-  lower <
   for (k in 1:ndat) {
     i <- theData$iind[k]
     j <- theData$jind[k]
@@ -36,13 +35,7 @@ strainSSBounds <- function(theData,
       i <- iind[k]
       j <- jind[k]
       daux[k] <- dhat[i, j] - hold[i, j]
-      if (daux[k] < lower[k]) {
-        daux[k] <- lower[k]
-      }
-      if (daux[k] > upper[k]) {
-        daux[k] <- upper[k]
-      }
-      dhat[i, j] <- dhat[j, i] <- daux[k]
+      dhat[i, j] <- dhat[j, i] <- max(lower[k], min(daux[k], upper[k]))
     }
     hmid <- doubleCenterSS(dhat - dold^2)
     smid <- sum(hmid^2) / 4
