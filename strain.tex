@@ -240,7 +240,7 @@
 
 \title{Nonmetric Strain}
 \author{Jan de Leeuw}
-\date{March 6, 2026}
+\date{April 11, 2026}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -294,13 +294,13 @@ C:=-\frac12 J\Delta^2J.\label{eq-c}
 
 In \emph{metric} MDS the matrix \(\Delta\) is constant and given, and we
 minimize strain over \(X\). From \eqref{eq-strainc} the basic theorem of
-Classical Scaling (Torgerson (\citeproc{ref-torgerson_58}{1958})), also
-known as Principal Coordinate Analysis (Gower
+Classical Scaling (Torgerson (\citeproc{ref-torgerson_58}{1958})), which
+is also known as Principal Coordinate Analysis (Gower
 (\citeproc{ref-gower_66}{1966})), tells us that the optimal \(X\) are
 the eigenvectors corresponding with the \(p\) largest eigenvalues of
 \(C_+\), the positive definite part of \(C\), with each eigenvector
 scaled to have norm equal to the square root of the corresponding
-eigenvalue There are rigorous proofs in Keller
+eigenvalue. There are rigorous proofs in Keller
 (\citeproc{ref-keller_62}{1962}) and De Leeuw
 (\citeproc{ref-deleeuw_R_74c}{1974a}).
 
@@ -317,7 +317,7 @@ a non-metric MDS technique based on strain is in De Leeuw and Heiser
 (\citeproc{ref-trosset_98}{1998}). The first systematic approach to the
 problem is in De Leeuw (\citeproc{ref-deleeuw_R_74b}{1974b}), who
 discusses the additive constant problem, the missing data problem, and
-the ordinal forms of MDS. There is not software in De Leeuw
+the ordinal forms of MDS. There is no software in De Leeuw
 (\citeproc{ref-deleeuw_R_74b}{1974b}), only equations. The paper
 proposes a minimization approach based on what Trosset
 (\citeproc{ref-trosset_97}{1997}) calls ``variable reduction''. The
@@ -334,7 +334,7 @@ constant problem is in Saito (\citeproc{ref-saito_78}{1978}). Since the
 additive constant) Saito uses a simple bisection-type search procedure
 on the positive real line for minimization.
 
-The a multi-parameter non-metric scaling problem occurs when some of the
+A multi-parameter non-metric scaling problem occurs when some of the
 \(\delta_{ij}\) are missing, either by accident or by design. Thus
 \begin{equation}
 \delta_{ij}=\begin{cases}\delta_{ij}^0&\text{ for non-missing},\\
@@ -343,14 +343,14 @@ The a multi-parameter non-metric scaling problem occurs when some of the
 \end{equation} Thus the number of additional parameters is equal to the
 number of missing elements. We will require the \(\theta_{ij}\) to be
 non-negative. An important special case of the missing data problem is
-the unfolding problem, in which we have similarities between objects in
-two disjoint sets. The between-set distances are known, while both
+the unfolding problem, in which we have dissimilarities between objects
+in two disjoint sets. The between-set distances are known, while both
 matrices of within-set distances are missing.
 
 A third important form of non-metric MDS is ordinal MDS. We require the
-\(\delta_{ij}\) to non-negative and monotone with the \(\delta_{ij}^0\).
-More precisely if \(\delta_{ij}^0\geq\delta_{kl}^0\) then we must have
-\(\delta_{ij}\geq\delta_{kl}\geq 0\).
+\(\delta_{ij}\) to be non-negative and monotone with the
+\(\delta_{ij}^0\). More precisely if \(\delta_{ij}^0\geq\delta_{kl}^0\)
+then we must have \(\delta_{ij}\geq\delta_{kl}\geq 0\).
 
 A systematic and general approach, similar to but much more detailed
 than De Leeuw (\citeproc{ref-deleeuw_R_74b}{1974b}), was followed by
@@ -363,7 +363,7 @@ constant problem, bound constraints, the missing data problem (as a
 special case of bound constraints), and ordinal MDS. He also compares
 variable reduction methods with ``variable alternation'' methods, which
 iteratively alternate minimization over \(X\) with minimization over
-\(\Delta\). For the variable reduction methods, which he favors, he
+\(\Delta\). For the variable reduction methods, which Trosset favors, he
 relies on established general purpose mathematical programming routines
 to minimize the reduced loss function.
 
@@ -415,7 +415,7 @@ scaling solution is equivalent to minimizing the loss function
 (\citeproc{ref-deleeuw_heiser_C_82}{1982}).
 
 The second subproblem, minimizing strain of \(\Delta\) for fixed \(X\)
-(and thus fixed \(D\)), can take various forms. We discuss some of the
+(and thus fixed \(D\)), can takes various forms. We discuss some of the
 important special cases, and their implementation in the following
 sections.
 
@@ -425,7 +425,7 @@ sections.
 
 \subsection{The Additive Constant}\label{the-additive-constant}
 
-The simplest, and oldest, form of non-metric scaling estimates the
+The simplest, and oldest, form of non-metric scaling estimates an
 additive constant. Thus \(\delta_{ij}=\delta_{ij}^0+\theta\) for all
 \(i\not= j\), where \(\delta_{ij}^0\) are the given dissimilarities.
 Only one additional parameter needs to be estimated, with the
@@ -497,14 +497,15 @@ complicated than standard linear regression because of the weights
 \(J\otimes J\) is singular, having \((n-1)^2\) unit eigenvalues and
 \(2n-1\) zero eigenvalues.
 
-Minimizing \ldots{} over \(\delta^2\) within the bounds can be solved by
-any quadratic programming method, as long as we are careful to handle
-the singularities appropriately. We will go an alternative route, using
-majorization to reduce the weighted least squares problem to a sequence
-of unweighted problems, in which we can trivially handle the bound
-constraints. Related results on majorizing weighted by unweighted least
-squares are in Kiers (\citeproc{ref-kiers_97}{1997}) and Groenen,
-Giaquinto, and Kiers (\citeproc{ref-groenen_giaquinto_kiers_03}{2003}).
+Minimizing \eqref{eq-strainvec} over \(\delta^2\) within the bounds can
+be solved by any quadratic programming method, as long as we are careful
+to handle the singularities appropriately. We will go an alternative
+route, using majorization to reduce the weighted least squares problem
+to a sequence of unweighted problems, in which we can trivially handle
+the bound constraints. Related results on majorizing weighted by
+unweighted least squares are in Kiers (\citeproc{ref-kiers_97}{1997})
+and Groenen, Giaquinto, and Kiers
+(\citeproc{ref-groenen_giaquinto_kiers_03}{2003}).
 
 Suppose \(\tilde\Delta\) is the current best value of the disparities.
 Expand strain around \(\tilde\Delta\). \begin{equation}
@@ -514,8 +515,8 @@ Expand strain around \(\tilde\Delta\). \begin{equation}
 function \(\eta\) defined as \begin{equation}
 \eta(\Delta,\tilde\Delta):=\sigma(\tilde\Delta) +\frac12\text{tr}\  J(\Delta-\tilde\Delta)J(\tilde\Delta-D^2) +\frac14\text{tr}\ (\Delta-\tilde\Delta)^2.\label{eq-etadef}
 \end{equation} The majorization, or MM, algorithm minimizes \(\eta\)
-over vectors \(\Delta\) in the hyper-rectangle of vectors within the
-bounds to find the update \(\Delta^+\).
+over vectors \(\Delta\) in the hyper-rectangle of bounded vectors to
+find the update \(\Delta^+\).
 
 To simplify the expression for \(\eta\) we ``complete the square''.
 Relying heavily on the idempotency of \(J\), and thus of \(J\otimes J\),
@@ -535,7 +536,7 @@ hyper-rectangle defined by the bounds \(\Delta_{\text{low}}\) and
 \Delta^+=\max(\Delta_{\text{low}},\min(\hat\Delta, \Delta_{\text{high}}))
 \end{equation} where max() and min() are applied elementwise.
 
-We now have the sandwich inequality \begin{equation}
+Majorization leads to the \emph{sandwich inequality} \begin{equation}
 \sigma(\Delta^+)\leq\eta(\Delta^+,\tilde\Delta)\leq\eta(\tilde\Delta,\tilde\Delta)=\sigma(\tilde\Delta).\label{eq-sandwich}
 \end{equation} In the substep of ALS in which we improve \(\Delta\) we
 make a number of ``inner'' majorization iterations. In the later
@@ -600,19 +601,19 @@ repository.
   strainSSOrdinal()
 \end{itemize}
 
-For this we use the R package RSpectra (Qiu and Mei
-(\citeproc{ref-qiu_mei_24}{2024})). If \(\Lambda_p\geq 0\) then the
-optimal \(X\) is \(\smash{K_p\Lambda_p^\frac12}\). If some elements of
-\(\Lambda_p\) are negative, we first replace them by zeroes.
+For updating \(X\) for given \(\Delta\) we use the R package RSpectra
+(Qiu and Mei (\citeproc{ref-qiu_mei_24}{2024})). If \(\Lambda_p\geq 0\)
+then the optimal \(X\) is \(\smash{K_p\Lambda_p^\frac12}\). If some
+elements of \(\Lambda_p\) are negative, we first replace them by zeroes.
 
 We minimizing the quartic over the half-open interval
 \(\theta\geq-\min\Delta\) using the formulas in Jeffrey
 (\citeproc{ref-jeffrey_97}{1997}). We implemented Jeffrey's solution in
-the C function jeffrey(), which is in the shared library jeffrey.so. The
-R program strainSSAddOne() loads the shared library and iteratively
-executes the two ALS sub problems.
+the C function jeffrey(), which is compiled to the shared library
+jeffrey.so. The R program strainSSAddOne() loads the shared library and
+iteratively executes the two ALS sub problems.
 
-that we solve by using the R function nnls() from the package with the
+For ordinal MDS we use the R function nnls() from the package with the
 same name (Mullen and van Stokkum
 (\citeproc{ref-mullen_vanstokkum_24}{2024})). The R function
 strainSSMissing() calls nnls(), as well as eigs\_sym() from RSpectra, to
@@ -626,10 +627,10 @@ solve the two ALS subproblems.
 
 Our example is taken from Torgerson (\citeproc{ref-torgerson_58}{1958}),
 pages 280-290. Dissimilarty judgments of nine Munsell colors of the same
-red hue, but differing in brightness and saturation, where collected
-from 38 subjects using the method of triads. The matrix \(\Delta_0\),
-which Torgerson calls the ``comparative distances'' is taken from his
-Table 5 on p 286.
+red hue, but differing in brightness and saturation, collected from 38
+subjects using the method of triads. The matrix \(\Delta_0\), which
+Torgerson calls the ``comparative distances'' is taken from his Table 5
+on p 286.
 
 \begin{verbatim}
        [,1]  [,2]  [,3]  [,4]  [,5]  [,6]  [,7]  [,8]  [,9]
@@ -677,10 +678,16 @@ are matched with procrustus() from procrustus.R, which minimizes
 The plot shows a stable solution. Points are labeled ``0'' for no
 missing, ``1'' for 5 missing, and so on. The red points are for the
 matched \(Z\) matrix. The number of iterations for 0, 5, 10, 50, 100
-missing data is 0, 9, 9, 17, 23 and strain is 6.7478705, 6.6592189,
-6.7039054, 6.2415359, 5.9283001.
+missing data is 0, 12, 8, 13, 31 and strain is 6.7478705, 6.7317984,
+6.6402179, 6.2501731, 5.9714461.
 
-roskam
+For an unfolding example we use data from Roskam
+(\citeproc{ref-roskam_68}{1968}). Nine disciplines within psychology are
+ranked in order of preference by 39 psychologists. Thus there are 48
+objects and 1128 dissimilarities, of which 351 or 31\% are observed. It
+is clear that the data are most naturally interpreted as both ordinal
+and conditional, where ``conditional'' means that the order is defined
+only within rows (psychologists) and not between rows.
 
 \sectionbreak
 
@@ -850,6 +857,10 @@ Computing}. {Vienna, Austria}: R Foundation for Statistical Computing.
 \bibitem[\citeproctext]{ref-ramsay_77}
 Ramsay, James O. 1977. {``{Maximum Likelihood Estimation in
 Multidimensional Scaling}.''} \emph{Psychometrika} 42: 241--66.
+
+\bibitem[\citeproctext]{ref-roskam_68}
+Roskam, E. E. 1968. {``{Metric Analysis of Ordinal Data in
+Psychology}.''} PhD thesis, University of Leiden.
 
 \bibitem[\citeproctext]{ref-rothkopf_57}
 Rothkopf, Ernst Z. 1957. {``{A Measure of Stimulus Similarity and Errors

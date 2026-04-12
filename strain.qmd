@@ -90,14 +90,14 @@ C:=-\frac12 J\Delta^2J.\label{eq-c}
 \end{equation}
 
 In *metric* MDS the matrix $\Delta$ is constant and given, and we minimize
-strain over $X$. From \eqref{eq-strainc} the basic theorem of Classical Scaling (@torgerson_58), also known as  Principal Coordinate Analysis (@gower_66), tells us that the optimal $X$ are the eigenvectors corresponding with the $p$ largest eigenvalues of $C_+$, the positive definite part of $C$, with each eigenvector scaled to have norm equal to the square root of the corresponding eigenvalue There are rigorous proofs in @keller_62 and @deleeuw_R_74c.
+strain over $X$. From \eqref{eq-strainc} the basic theorem of Classical Scaling (@torgerson_58), which is also known as  Principal Coordinate Analysis (@gower_66), tells us that the optimal $X$ are the eigenvectors corresponding with the $p$ largest eigenvalues of $C_+$, the positive definite part of $C$, with each eigenvector scaled to have norm equal to the square root of the corresponding eigenvalue. There are rigorous proofs in @keller_62 and @deleeuw_R_74c.
 
 In non-metric MDS we have to minimize strain over both $X$ and $\Delta$, where $\Delta$ varies in some subset of the space $\mathfrak{D}$ of non-negative, symmetric and hollow matrices of order $n$. Classical examples, treated in detail
 in this paper, are the additive constant problem, the missing data problem, the use of bound constraints, and ordinal non-metric scaling.
 
 The history of various tentative and/or incomplete attempts to construct a non-metric MDS technique based on strain is in @deleeuw_heiser_C_82 and @trosset_98. The first systematic approach to the problem is in @deleeuw_R_74b,
 who discusses the additive constant problem, the missing data problem, and the ordinal forms
-of MDS. There is not software in  @deleeuw_R_74b, only equations. The paper proposes a minimization approach based on what @trosset_97 calls "variable reduction". The minimum of strain over $X$,
+of MDS. There is no software in  @deleeuw_R_74b, only equations. The paper proposes a minimization approach based on what @trosset_97 calls "variable reduction". The minimum of strain over $X$,
 which equals the sum of squares of the discarded eigenvalues of $C_+$, is minimized over $\Delta$. Results from classical perturbation theory are used to 
 give expression for the first and second derivatives of this "reduced"
 loss function, with the implicit understanding that these derivatives
@@ -107,7 +107,7 @@ An early implementation of the same methodology for the additive constant proble
 is in @saito_78. Since the "reduced" strain in that case only depends on a single parameter (the additive constant) Saito uses a simple bisection-type
 search procedure on the positive real line for minimization. 
 
-The a multi-parameter non-metric scaling problem occurs when
+A multi-parameter non-metric scaling problem occurs when
 some of the $\delta_{ij}$ are missing, either by accident or by design.
 Thus
 \begin{equation}
@@ -118,18 +118,18 @@ Thus
 Thus the number of additional parameters is equal to the number of
 missing elements. We will require the $\theta_{ij}$ to be
 non-negative. An important special case of the missing data
-problem is the unfolding problem, in which we have similarities between objects in two disjoint sets. The between-set distances are known, while both 
+problem is the unfolding problem, in which we have dissimilarities between objects in two disjoint sets. The between-set distances are known, while both 
 matrices of within-set distances are missing.
 
 A third important form of non-metric MDS is
-ordinal MDS. We require the $\delta_{ij}$ to non-negative and monotone with
+ordinal MDS. We require the $\delta_{ij}$ to be non-negative and monotone with
 the $\delta_{ij}^0$. More precisely if $\delta_{ij}^0\geq\delta_{kl}^0$
 then we must have $\delta_{ij}\geq\delta_{kl}\geq 0$.
 
 A systematic and general approach, similar to but much more detailed than
 @deleeuw_R_74b, was followed by Michael Trosset in a sequence of papers (@trosset_97, @trosset_00, @trosset_98, @trosset_02).
 Trosset addresses the additive constant problem, bound constraints, the missing data problem (as a special case of bound constraints), and ordinal MDS. He also compares variable reduction methods with
-"variable alternation" methods, which iteratively alternate minimization over $X$ with minimization over $\Delta$. For the variable reduction methods, which he
+"variable alternation" methods, which iteratively alternate minimization over $X$ with minimization over $\Delta$. For the variable reduction methods, which Trosset
 favors, he relies on established general purpose mathematical programming routines
 to minimize the reduced loss function.
 
@@ -166,7 +166,7 @@ In the first subproblem minimizing strain over $X$ for fixed $\Delta$ is done by
 classical metric
 multidimensional scaling (@torgerson_58, @gower_66, @mardia_78). The fact that computing the classical scaling solution is equivalent to minimizing the loss function \eqref{eq-strain} was first pointed out by @deleeuw_heiser_C_82.
 
-The second subproblem, minimizing strain of $\Delta$ for fixed $X$ (and thus fixed $D$), can take various forms. We discuss some of the important special cases, and their implementation in the following sections.
+The second subproblem, minimizing strain of $\Delta$ for fixed $X$ (and thus fixed $D$), can takes various forms. We discuss some of the important special cases, and their implementation in the following sections.
 
 \sectionbreak
 
@@ -174,13 +174,14 @@ The second subproblem, minimizing strain of $\Delta$ for fixed $X$ (and thus fix
 
 ## The Additive Constant
 
-The simplest, and oldest, form of non-metric scaling estimates the additive
+The simplest, and oldest, form of non-metric scaling estimates an additive
 constant. Thus $\delta_{ij}=\delta_{ij}^0+\theta$ for all $i\not= j$, where
 $\delta_{ij}^0$ are the given dissimilarities. Only one additional parameter
 needs to be estimated, with the side-condition that the adjusted $\delta_{ij}$
 are non-negative. 
 
-If a constant $\theta$ is added to the off-diagonal dissimilarities the disparities are
+If a constant $\theta$ is added to the off-diagonal dissimilarities 
+the disparities are
 \begin{align}
 \Delta^2&=\Delta_0^2+2\theta\Delta_0+\theta^2(E-I).\label{eq-addone}
 \end{align}
@@ -242,7 +243,7 @@ Equation  \eqref{eq-strainvec} shows that minimizing strain over $\delta$ is a w
 than standard linear regression because of the weights $J\otimes J$, which
 are not diagonal. Thus strain as a function of $\delta^2$, although convex, is not separable. In addition $J\otimes J$ is singular, having $(n-1)^2$ unit eigenvalues and $2n-1$ zero eigenvalues.  
 
-Minimizing ... over $\delta^2$ within the bounds can be solved by any quadratic
+Minimizing \eqref{eq-strainvec} over $\delta^2$ within the bounds can be solved by any quadratic
 programming method, as long as we are careful to handle the singularities
 appropriately. We will go an alternative route, using majorization to reduce the weighted least squares problem to a sequence of unweighted problems, in which we can trivially handle the bound constraints. Related results on majorizing weighted by unweighted least squares are in @kiers_97 and @groenen_giaquinto_kiers_03.
 
@@ -257,7 +258,7 @@ with the majorization function $\eta$ defined as
 \begin{equation}
 \eta(\Delta,\tilde\Delta):=\sigma(\tilde\Delta) +\frac12\text{tr}\  J(\Delta-\tilde\Delta)J(\tilde\Delta-D^2) +\frac14\text{tr}\ (\Delta-\tilde\Delta)^2.\label{eq-etadef}
 \end{equation}
-The majorization, or MM, algorithm minimizes $\eta$ over vectors $\Delta$ in the hyper-rectangle of vectors within the bounds to find the update $\Delta^+$.
+The majorization, or MM, algorithm minimizes $\eta$ over vectors $\Delta$ in the hyper-rectangle of bounded vectors to find the update $\Delta^+$.
 
 To simplify the expression for $\eta$ we "complete the square". Relying heavily
 on the idempotency of $J$, and thus of $J\otimes J$, we find
@@ -276,8 +277,8 @@ Finally the update $\Delta^+$ is the unweighted least squares projection of $\ha
 \end{equation}
 where max() and min() are applied elementwise.
 
-We now have
-the sandwich inequality
+Majorization leads to
+the *sandwich inequality*
 \begin{equation}
 \sigma(\Delta^+)\leq\eta(\Delta^+,\tilde\Delta)\leq\eta(\tilde\Delta,\tilde\Delta)=\sigma(\tilde\Delta).\label{eq-sandwich}
 \end{equation}
@@ -325,13 +326,12 @@ For the four special cases we have discussed  there are four R programs (@r_core
 - strainSSBound()
 - strainSSOrdinal()
 
-For this we use the R package RSpectra (@qiu_mei_24). If  $\Lambda_p\geq 0$ then the optimal $X$ is $\smash{K_p\Lambda_p^\frac12}$. If some elements of $\Lambda_p$ are negative, we first replace them by zeroes. 
+For updating $X$ for given $\Delta$ we use the R package RSpectra (@qiu_mei_24). If  $\Lambda_p\geq 0$ then the optimal $X$ is $\smash{K_p\Lambda_p^\frac12}$. If some elements of $\Lambda_p$ are negative, we first replace them by zeroes. 
 
-We minimizing the quartic over the half-open interval $\theta\geq-\min\Delta$ using the formulas in @jeffrey_97. We implemented Jeffrey's solution in the C function jeffrey(), which is in the shared library jeffrey.so. The R program strainSSAddOne() loads the shared library and 
+We minimizing the quartic over the half-open interval $\theta\geq-\min\Delta$ using the formulas in @jeffrey_97. We implemented Jeffrey's solution in the C function jeffrey(), which is compiled to the shared library jeffrey.so. The R program strainSSAddOne() loads the shared library and 
 iteratively executes the two ALS sub problems.
 
-that we solve by using the R function nnls() from the package with the same name (@mullen_vanstokkum_24). The R function strainSSMissing() calls nnls(), as well as eigs_sym()
-from RSpectra, to solve the two ALS subproblems.
+For ordinal MDS we use the R function nnls() from the package with the same name (@mullen_vanstokkum_24). The R function strainSSMissing() calls nnls(), as well as eigs_sym() from RSpectra, to solve the two ALS subproblems.
 
 \sectionbreak
 
@@ -340,7 +340,7 @@ from RSpectra, to solve the two ALS subproblems.
 ## The Additive Constant
 
 Our example is taken from @torgerson_58, pages 280-290. Dissimilarty judgments of nine Munsell
-colors of the same red hue, but differing in brightness and saturation, where collected from 38 subjects using the method of triads. The matrix $\Delta_0$, which Torgerson calls the
+colors of the same red hue, but differing in brightness and saturation, collected from 38 subjects using the method of triads. The matrix $\Delta_0$, which Torgerson calls the
 "comparative distances" is taken from his Table 5 on p 286.
 ```{r munselldata, echo = FALSE}
 print(munsellMatrix)
@@ -382,7 +382,12 @@ matrix. The number of iterations for 0, 5, 10, 50, 100 missing data is
 `r c(h0$itel, h5$itel, h10$itel, h50$itel, h100$itel)` and
 strain is `r c(h0$loss, h5$loss, h10$loss, h50$loss, h100$loss)`.
 
-roskam
+For an unfolding example we use data from @roskam_68. Nine disciplines within
+psychology are ranked in order of preference by 39 psychologists. Thus
+there are 48 objects and 1128 dissimilarities, of which 351 or 31\%
+are observed. It is clear that the data are most naturally interpreted
+as both ordinal and conditional, where "conditional" means that the order is defined
+only within rows (psychologists) and not between rows.
 
 \sectionbreak
 
