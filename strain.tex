@@ -69,6 +69,7 @@
 
 
 \usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
 \usepackage{calc} % for calculating minipage widths
 % Correct order of tables after \paragraph or \subparagraph
 \usepackage{etoolbox}
@@ -227,6 +228,10 @@
 \usepackage{bookmark}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
 \hypersetup{
   pdftitle={Nonmetric Strain},
   pdfauthor={Jan de Leeuw},
@@ -256,7 +261,6 @@ strain minimization, together with corresponding programs in R.
 
 \renewcommand*\contentsname{Table of contents}
 {
-\hypersetup{linkcolor=}
 \setcounter{tocdepth}{3}
 \tableofcontents
 }
@@ -301,7 +305,7 @@ the eigenvectors corresponding with the \(p\) largest eigenvalues of
 \(C_+\), the positive definite part of \(C\), with each eigenvector
 scaled to have norm equal to the square root of the corresponding
 eigenvalue. There are rigorous proofs in Keller
-(\citeproc{ref-keller_62}{1962}) and De Leeuw
+(\citeproc{ref-keller_62}{1962}) and {de Leeuw}
 (\citeproc{ref-deleeuw_R_74c}{1974a}).
 
 In non-metric MDS we have to minimize strain over both \(X\) and
@@ -312,12 +316,12 @@ additive constant problem, the missing data problem, the use of bound
 constraints, and ordinal non-metric scaling.
 
 The history of various tentative and/or incomplete attempts to construct
-a non-metric MDS technique based on strain is in De Leeuw and Heiser
+a non-metric MDS technique based on strain is in {de Leeuw and Heiser}
 (\citeproc{ref-deleeuw_heiser_C_82}{1982}) and Trosset
 (\citeproc{ref-trosset_98}{1998}). The first systematic approach to the
-problem is in De Leeuw (\citeproc{ref-deleeuw_R_74b}{1974b}), who
+problem is in {de Leeuw} (\citeproc{ref-deleeuw_R_74b}{1974b}), who
 discusses the additive constant problem, the missing data problem, and
-the ordinal forms of MDS. There is no software in De Leeuw
+the ordinal forms of MDS. There is no software in {de Leeuw}
 (\citeproc{ref-deleeuw_R_74b}{1974b}), only equations. The paper
 proposes a minimization approach based on what Trosset
 (\citeproc{ref-trosset_97}{1997}) calls ``variable reduction''. The
@@ -353,7 +357,7 @@ A third important form of non-metric MDS is ordinal MDS. We require the
 then we must have \(\delta_{ij}\geq\delta_{kl}\geq 0\).
 
 A systematic and general approach, similar to but much more detailed
-than De Leeuw (\citeproc{ref-deleeuw_R_74b}{1974b}), was followed by
+than {de Leeuw} (\citeproc{ref-deleeuw_R_74b}{1974b}), was followed by
 Michael Trosset in a sequence of papers (Trosset
 (\citeproc{ref-trosset_97}{1997}), Trosset
 (\citeproc{ref-trosset_00}{2000}), Trosset
@@ -411,7 +415,7 @@ In the first subproblem minimizing strain over \(X\) for fixed
 (\citeproc{ref-gower_66}{1966}), Mardia
 (\citeproc{ref-mardia_78}{1978})). The fact that computing the classical
 scaling solution is equivalent to minimizing the loss function
-\eqref{eq-strain} was first pointed out by De Leeuw and Heiser
+\eqref{eq-strain} was first pointed out by {de Leeuw and Heiser}
 (\citeproc{ref-deleeuw_heiser_C_82}{1982}).
 
 The second subproblem, minimizing strain of \(\Delta\) for fixed \(X\)
@@ -504,8 +508,7 @@ route, using majorization to reduce the weighted least squares problem
 to a sequence of unweighted problems, in which we can trivially handle
 the bound constraints. Related results on majorizing weighted by
 unweighted least squares are in Kiers (\citeproc{ref-kiers_97}{1997})
-and Groenen, Giaquinto, and Kiers
-(\citeproc{ref-groenen_giaquinto_kiers_03}{2003}).
+and Groenen et al. (\citeproc{ref-groenen_giaquinto_kiers_03}{2003}).
 
 Suppose \(\tilde\Delta\) is the current best value of the disparities.
 Expand strain around \(\tilde\Delta\). \begin{equation}
@@ -557,7 +560,7 @@ larger or smaller than other \(\delta\)'s.
 
 Equation \eqref{eq-strainvec2} shows that minimizing strain over
 \(\delta\) is a non-separable weighted monotone regression problem.
-Routines such as PAVA cannot be used (De Leeuw, Hornik, and Mair
+Routines such as PAVA cannot be used (De Leeuw et al.
 (\citeproc{ref-deleeuw_hornik_mair_A_09}{2009})). We will go the same
 majorization route as the one we used for bound constraints. Thus in
 each substep we have to minimize \(\eta\) from \eqref{eq-etasimp} over
@@ -574,11 +577,11 @@ on either \(X\) or \(\Delta\) which excludes the origin from
 \(\mathfrak{D}\). In this paper we use \(\text{tr}\ F^2=1\), where
 \(F:=J\Delta^2 J\). Thus \(\mathfrak{D}\) becomes the intersection of a
 polyhedral convex cone and the unit sphere in the space of transformed
-dissimilarities. It has been shown by De Leeuw
+dissimilarities. It has been shown by {de Leeuw}
 (\citeproc{ref-deleeuw_U_75a}{1975}) that projecting on this set can be
 done by normalizing the projection on the cone, i.e.~by normalizing the
 monotone regression. For a more general and rigorous treatment of the
-same problem, see Bauschke, Bui, and Wang
+same problem, see Bauschke et al.
 (\citeproc{ref-bauschke_bui_wang_18}{2018}).
 
 \sectionbreak
@@ -614,7 +617,7 @@ jeffrey.so. The R program strainSSAddOne() loads the shared library and
 iteratively executes the two ALS sub problems.
 
 For ordinal MDS we use the R function nnls() from the package with the
-same name (Mullen and van Stokkum
+same name ({Mullen and van Stokkum}
 (\citeproc{ref-mullen_vanstokkum_24}{2024})). The R function
 strainSSMissing() calls nnls(), as well as eigs\_sym() from RSpectra, to
 solve the two ALS subproblems.
@@ -678,8 +681,8 @@ are matched with procrustus() from procrustus.R, which minimizes
 The plot shows a stable solution. Points are labeled ``0'' for no
 missing, ``1'' for 5 missing, and so on. The red points are for the
 matched \(Z\) matrix. The number of iterations for 0, 5, 10, 50, 100
-missing data is 0, 12, 8, 13, 31 and strain is 6.7478705, 6.7317984,
-6.6402179, 6.2501731, 5.9714461.
+missing data is 0, 8, 9, 12, 20 and strain is 6.7478705, 6.7116323,
+6.7275282, 6.187597, 5.8180852.
 
 For an unfolding example we use data from Roskam
 (\citeproc{ref-roskam_68}{1968}). Nine disciplines within psychology are
@@ -695,11 +698,11 @@ only within rows (psychologists) and not between rows.
 
 Most MDS loss functions are of the form \begin{equation}
 \sigma(X):=\sum_k w_k(f(\delta_k)-f(d_k(X)))^2\label{eq-fstress}
-\end{equation} for some given function \(f\). Groenen, De Leeuw, and
-Mathar (\citeproc{ref-groenen_deleeuw_mathar_C_95}{1995}) call loss
-function \eqref{eq-fstress} fStress. For \(f\) equal to the identity we
-have stress (Kruskal (\citeproc{ref-kruskal_64a}{1964})), for \(f\) the
-square we have sstress (Takane, Young, and De Leeuw
+\end{equation} for some given function \(f\). {Groenen et al.}
+(\citeproc{ref-groenen_deleeuw_mathar_C_95}{1995}) call loss function
+\eqref{eq-fstress} fStress. For \(f\) equal to the identity we have
+stress (Kruskal (\citeproc{ref-kruskal_64a}{1964})), for \(f\) the
+square we have sstress ({Takane et al.}
 (\citeproc{ref-takane_young_deleeuw_A_77}{1977})), and for \(f\) the
 logarithm we have log-stress (Ramsay (\citeproc{ref-ramsay_77}{1977})).
 If we compare \eqref{eq-fstress} and strain we see that strain is more
@@ -754,47 +757,49 @@ weighted strain
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
 
-\phantomsection\label{refs}
-\begin{CSLReferences}{1}{0}
+\protect\phantomsection\label{refs}
+\begin{CSLReferences}{1}{1}
 \bibitem[\citeproctext]{ref-bauschke_bui_wang_18}
 Bauschke, Heinz H., Minh N. Bui, and Xianfu Wang. 2018. {``{Projecting
 onto the Intersection of a Cone and a Sphere}.''} \emph{SIAM Journal on
 Optimization} 28: 2158--88.
 
 \bibitem[\citeproctext]{ref-deleeuw_R_74c}
-De Leeuw, Jan. 1974a. {``Approximation of a Real Symmetric Matrix by a
-Positive Semidefinite Matrix of Rank r.''} Technical Memorandum
-TM-74-1229-10. Murray Hill, N.J.: Bell Telephone Laboratories.
-\url{https://jansweb.netlify.app/publication/deleeuw-r-74-c/deleeuw-r-74-c.pdf}.
+{de Leeuw, Jan}. 1974a. \emph{{Approximation of a Real Symmetric Matrix
+by a Positive Semidefinite Matrix of Rank r}}. Technical Memorandum
+TM-74-1229-10. Bell Telephone Laboratories.
+\url{https://deleeuw.github.io/janspubs/deleeuw-r-74-c/deleeuw-r-74-c.pdf}.
 
 \bibitem[\citeproctext]{ref-deleeuw_R_74b}
----------. 1974b. {``Finding a Positive Semidefinite Matrix of
-Prescribed Rank r in a Nonlinear Differentiable Manifold.''} Technical
-Memorandum. Murray Hill, N.J.: Bell Telephone Laboratories.
-\url{https://jansweb.netlify.app/publication/deleeuw-r-74-b/deleeuw-r-74-b.pdf}.
+{de Leeuw, Jan}. 1974b. \emph{{Finding a Positive Semidefinite Matrix of
+Prescribed Rank r in a Nonlinear Differentiable Manifold}}. Technical
+Memorandum. Bell Telephone Laboratories.
+\url{https://deleeuw.github.io/janspubs/deleeuw-r-74-b/deleeuw-r-74-b.pdf}.
 
 \bibitem[\citeproctext]{ref-deleeuw_U_75a}
----------. 1975. {``{A Normalized Cone Regression Approach to
+{de Leeuw, Jan}. 1975. {``{A Normalized Cone Regression Approach to
 Alternating Least Squares Algorithms}.''} Department of Data Theory
 FSW/RUL.
-\url{https://jansweb.netlify.app/publication/deleeuw-u-75-a/deleeuw-u-75-a.pdf}.
+\url{https://deleeuw.github.io/janspubs/deleeuw-u-75-a/deleeuw-u-75-a.pdf}.
 
 \bibitem[\citeproctext]{ref-deleeuw_heiser_C_82}
-De Leeuw, Jan, and Willem J. Heiser. 1982. {``Theory of Multidimensional
-Scaling.''} In \emph{Handbook of Statistics, Volume {II}}, edited by P.
-R. Krishnaiah and L. Kanal. Amsterdam, The Netherlands: North Holland
-Publishing Company.
+{de Leeuw, Jan, and Willem J. Heiser}. 1982. {``{Theory of
+Multidimensional Scaling}.''} In \emph{Handbook of Statistics, Volume
+{II}}, edited by P. R. Krishnaiah and L. Kanal. North Holland Publishing
+Company.
+\url{https://deleeuw.github.io/janspubs/deleeuw-heiser-c-82/deleeuw-heiser-c-82.pdf}.
 
 \bibitem[\citeproctext]{ref-deleeuw_hornik_mair_A_09}
 De Leeuw, Jan, Kurt Hornik, and Patrick Mair. 2009. {``{Isotone
 Optimization in R: Pool-Adjacent-Violators Algorithm (PAVA) and Active
 Set Methods}.''} \emph{Journal of Statistical Software} 32 (5): 1--24.
+\url{https://deleeuw.github.io/janspubs/deleeuw-hornik-mair-a-09/deleeuw-hornik-mair-a-09.pdf}.
 
 \bibitem[\citeproctext]{ref-deleeuw_mair_A_09c}
 De Leeuw, Jan, and Patrick Mair. 2009. {``{Multidimensional Scaling
 Using Majorization: SMACOF in R}.''} \emph{Journal of Statistical
 Software} 31 (3): 1--30.
-\url{https://www.jstatsoft.org/article/view/v031i03}.
+\url{https://deleeuw.github.io/janspubs/deleeuw-mair-a-09-c/deleeuw-mair-a-09-c.pdf}.
 
 \bibitem[\citeproctext]{ref-gower_66}
 Gower, John C. 1966. {``{Some Distance Properties of Latent Root and
@@ -802,17 +807,17 @@ Vector Methods Used in Multivariate Analysis}.''} \emph{Biometrika} 53:
 325--38.
 
 \bibitem[\citeproctext]{ref-groenen_deleeuw_mathar_C_95}
-Groenen, Patrick J. F., Jan De Leeuw, and Rudolf Mathar. 1995. {``{Least
-Squares Multidimensional Scaling with Transformed Distances}.''} In
-\emph{{From Data to Knowledge: Theoretical and Practical Aspects of
-Classification, Data Analysis and Knowledge Organization}}, edited by W.
-Gaul and D. Pfeifer. Berlin, Germany: Springer Verlag.
-\url{https://jansweb.netlify.app/publication/groenen-deleeuw-mathar-c-95/groenen-deleeuw-mathar-c-95.pdf}.
+{Groenen, Patrick J. F., Jan de Leeuw, and Rudolf Mathar}. 1995.
+{``{Least Squares Multidimensional Scaling with Transformed
+Distances}.''} In \emph{{From Data to Knowledge: Theoretical and
+Practical Aspects of Classification, Data Analysis and Knowledge
+Organization}}, edited by W. Gaul and D. Pfeifer. Springer Verlag.
+\url{https://deleeuw.github.io/janspubs/groenen-deleeuw-mathar-c-95/groenen-deleeuw-mathar-c-95.pdf}.
 
 \bibitem[\citeproctext]{ref-groenen_giaquinto_kiers_03}
 Groenen, Patrick J. F., Patrizia Giaquinto, and Henk A. L Kiers. 2003.
-{``{Weighted Majorization Algorithms for Weighted Least Squares
-Decomposition Models}.''} Econometric Institute Report EI 2003-09.
+\emph{{Weighted Majorization Algorithms for Weighted Least Squares
+Decomposition Models}}. Econometric Institute Report EI 2003-09.
 Econometric Institute, Erasmus University Rotterdam.
 \url{https://repub.eur.nl/pub/1700}.
 
@@ -840,8 +845,8 @@ Scaling.''} \emph{Communications in Statistics - Theory and Methods} 7
 (13): 1233--41.
 
 \bibitem[\citeproctext]{ref-mullen_vanstokkum_24}
-Mullen, Katherine M., and Ivo H. M. van Stokkum. 2024. \emph{{nnls: The
-Lawson-Hanson algorithm for non-negative least squares (NNLS)}}.
+{Mullen, Katherine M., and Ivo H. M. van Stokkum}. 2024. \emph{{nnls:
+The Lawson-Hanson algorithm for non-negative least squares (NNLS)}}.
 \url{\%7Bhttps://CRAN.R-project.org/package=nnls\%7D}.
 
 \bibitem[\citeproctext]{ref-qiu_mei_24}
@@ -851,7 +856,7 @@ Large-Scale Eigenvalue and SVD Problems}}.
 
 \bibitem[\citeproctext]{ref-r_core_team_25}
 R Core Team. 2025. \emph{R: A Language and Environment for Statistical
-Computing}. {Vienna, Austria}: R Foundation for Statistical Computing.
+Computing}. R Foundation for Statistical Computing.
 \url{https://www.R-project.org/}.
 
 \bibitem[\citeproctext]{ref-ramsay_77}
@@ -859,7 +864,7 @@ Ramsay, James O. 1977. {``{Maximum Likelihood Estimation in
 Multidimensional Scaling}.''} \emph{Psychometrika} 42: 241--66.
 
 \bibitem[\citeproctext]{ref-roskam_68}
-Roskam, E. E. 1968. {``{Metric Analysis of Ordinal Data in
+Roskam, Edward E. C. I. 1968. {``{Metric Analysis of Ordinal Data in
 Psychology}.''} PhD thesis, University of Leiden.
 
 \bibitem[\citeproctext]{ref-rothkopf_57}
@@ -879,33 +884,35 @@ Applicables Vectoriellement sur l'Espace de Hllbert}.''} \emph{Annals of
 Mathematics} 36: 724--32.
 
 \bibitem[\citeproctext]{ref-takane_young_deleeuw_A_77}
-Takane, Yoshio, Forrest W. Young, and Jan De Leeuw. 1977. {``Nonmetric
-Individual Differences in Multidimensional Scaling: An Alternating Least
-Squares Method with Optimal Scaling Features.''} \emph{Psychometrika}
-42: 7--67.
+{Takane, Yoshio, Forrest W. Young, and Jan de Leeuw}. 1977.
+{``{Nonmetric Individual Differences in Multidimensional Scaling: An
+Alternating Least Squares Method with Optimal Scaling Features}.''}
+\emph{Psychometrika} 42: 7--67.
+\url{https://deleeuw.github.io/janspubs/takane-young-deleeuw-a-77/takane-young-deleeuw-a-77.pdf}.
 
 \bibitem[\citeproctext]{ref-torgerson_58}
-Torgerson, Warren S. 1958. \emph{{Theory and Methods of Scaling}}. New
-York: Wiley.
+Torgerson, Warren S. 1958. \emph{{Theory and Methods of Scaling}}.
+Wiley.
 
 \bibitem[\citeproctext]{ref-trosset_97}
 Trosset, Michael W. 1997. {``Numerical Algorithms for Multidimensional
 Scaling.''} In \emph{Classification and Knowledge Organization}, edited
-by Rüdiger Klar and Otto Opitz, 80--92. Springer.
+by Rüdiger Klar and Otto Opitz. Springer.
 
 \bibitem[\citeproctext]{ref-trosset_98}
----------. 1998. {``A New Formulation of the Nonmetric Strain Problem in
-Multidimensional Scaling.''} \emph{Journal of Classification} 15:
-15--35.
+Trosset, Michael W. 1998. {``A New Formulation of the Nonmetric Strain
+Problem in Multidimensional Scaling.''} \emph{Journal of Classification}
+15: 15--35.
 
 \bibitem[\citeproctext]{ref-trosset_00}
----------. 2000. {``Distance Matrix Completion by Numerical
+Trosset, Michael W. 2000. {``Distance Matrix Completion by Numerical
 Optimization.''} \emph{Computational Optimization and Applications} 17:
 11--22.
 
 \bibitem[\citeproctext]{ref-trosset_02}
----------. 2002. {``Extensions of Classical Multidimensional Scaling via
-Variable Reduction.''} \emph{Computational Statistics} 17: 147--63.
+Trosset, Michael W. 2002. {``Extensions of Classical Multidimensional
+Scaling via Variable Reduction.''} \emph{Computational Statistics} 17:
+147--63.
 
 \bibitem[\citeproctext]{ref-young_householder_38}
 Young, Gale, and Alston S. Householder. 1938. {``{Discussion of a Set of
